@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".MainActivity">
+
+
+    <com.shetj.waveview.AudioWaveView
+        android:id="@+id/audioWaveView"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:wv_bottom_line_margin="20dp"
+        app:wv_can_scroll="true"
+        app:wv_center_line_width="2dp"
+        app:wv_cut_icon="@mipmap/icon_test_touch"
+        app:wv_cut_icon_size="25dp"
+        app:wv_cut_line_width="1dp"
+        app:wv_cut_time_text_size="12sp"
+        app:wv_time_progress_text_color="@color/black"
+        app:wv_time_progress_text_size="12sp" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/audioWaveView">
+
+        <TextView
+            android:id="@+id/time1"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/time2"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/time3"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
+    <com.google.android.material.chip.ChipGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="45dp"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/audioWaveView">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/start_add"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:text="添加frame" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="滚动尾部" />
+
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/open_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="开启编辑" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/close_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="关闭编辑" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/cut_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="剪切选中" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/play"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="播放动画" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/pause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="暂停" />
+    </com.google.android.material.chip.ChipGroup>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

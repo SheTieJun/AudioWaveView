@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="AudioWaveView">
+        <!--        顶部的线到底部的距离-->
+        <attr name="wv_top_line_margin" format="dimension" />
+        <!--        底部的线到底部的距离-->
+        <attr name="wv_bottom_line_margin" format="dimension" />
+        <!--        疫苗存在的矩形数量-->
+        <attr name="wv_one_second_rect_size" format="float" />
+        <!--        顶部线和底部线的颜色-->
+        <attr name="wv_top_bottom_line_color" format="color" />
+        <!--        顶部线和底部线的颜色-->
+        <attr name="wv_top_bottom_line_width" format="dimension" />
+        <!--        矩形相关设置-->
+        <attr name="wv_rect_level" format="integer"/>
+        <attr name="wv_rect_width" format="dimension" />
+        <attr name="wv_rect_space" format="dimension" />
+        <attr name="wv_rect_right_color" format="color" />
+        <attr name="wv_rect_left_color" format="color" />
+
+        <!--        中线的颜色，宽度-->
+        <attr name="wv_center_line_color" format="color" />
+        <attr name="wv_center_line_width" format="dimension" />
+        <!--        剪切部分的设置-->
+        <!--        icon 资源-->
+        <attr name="wv_cut_icon" format="reference" />
+        <!--        icon的大小-->
+        <attr name="wv_cut_icon_size" format="dimension" />
+        <!--        剪切线的颜色-->
+        <attr name="wv_cut_line_color" format="color" />
+        <!--        剪切线的宽度-->
+        <attr name="wv_cut_line_width" format="dimension" />
+        <!--        剪切线上时间字体颜色-->
+        <attr name="wv_cut_time_text_color" format="color" />
+        <!--        剪切线上时间字体大小-->
+        <attr name="wv_cut_time_text_size" format="dimension" />
+        <!--        2条剪切线中间区域选中的颜色-->
+        <attr name="wv_cut_select_color" format="color" />
+
+        <!--        时间刻度的字体颜色-->
+        <attr name="wv_time_progress_text_color" format="color" />
+        <!--    时间刻度的字体大小    -->
+        <attr name="wv_time_progress_text_size" format="dimension" />
+        <!--        是否可以滚动-->
+        <attr name="wv_can_scroll" format="boolean" />
+
+    </declare-styleable>
+
+</resources>
