@@ -245,7 +245,7 @@ open class AudioWaveView @JvmOverloads constructor(
         mLinePaint.color =
             ta.getColor(R.styleable.AudioWaveView_wv_top_bottom_line_color, Color.parseColor("#c8cad0"))
 
-        mLinePaint.strokeWidth = ta.getDimension(R.styleable.AudioWaveView_wv_top_bottom_line_width,3f)
+        mLinePaint.strokeWidth = ta.getDimension(R.styleable.AudioWaveView_wv_top_bottom_line_width, 3f)
 
         level = ta.getInt(R.styleable.AudioWaveView_wv_rect_level, 10)
         rectSpace = ta.getDimension(R.styleable.AudioWaveView_wv_rect_space, dip2px(2f).toFloat())
@@ -363,8 +363,8 @@ open class AudioWaveView @JvmOverloads constructor(
      * 开启编辑模式
      */
     open fun startEditModel() {
-        offsetRightX = (-offsetX).coerceAtLeast(min(100f, contentLength.toFloat()))
-        offsetLeftX = offsetRightX - min(100f, contentLength.toFloat())
+        offsetRightX = (-offsetX).coerceAtLeast(min(100f, contentLength))
+        offsetLeftX = offsetRightX - min(100f, contentLength)
         isEditModel = true
         updateSelectTimePosition()
         invalidate()
@@ -380,16 +380,45 @@ open class AudioWaveView @JvmOverloads constructor(
         if ((startTime ?: 0) > (endTime ?: 0)) {
             throw IllegalArgumentException("startTime > endTime ")
         }
-        offsetRightX = startTime?.let {
+        offsetRightX = startTime?.coerceAtLeast(0)?.let {
             (it.times(contentLength) / duration).coerceAtLeast(min(100f, contentLength))
-        } ?: kotlin.run { (-offsetX).coerceAtLeast(min(100f, contentLength.toFloat())) }
-        offsetLeftX = endTime?.let {
+        } ?: kotlin.run { (-offsetX).coerceAtLeast(min(100f, contentLength)) }
+        offsetLeftX = endTime?.coerceAtLeast(0)?.let {
             (it.times(contentLength) / duration)
         } ?: kotlin.run { offsetRightX - min(100f, contentLength) }
         isEditModel = true
         updateSelectTimePosition()
         invalidate()
     }
+
+    open fun getFrames(): ArrayList<Float> {
+        return frameArray.get()
+    }
+
+    open fun addFrames(index: Int, frameArray: FrameArray, frameDuration: Long, editModel: Boolean = true) {
+        frameArray.add(index, frameArray.get())
+        duration += frameDuration
+        if (editModel) {
+            startEditModel(startTime, startTime + frameDuration)
+        }
+    }
+
+
+    open fun replaceFrames(
+        startTime: Long,
+        endTime: Long,
+        frameArray: FrameArray,
+        frameDuration: Long,
+        editModel: Boolean = true
+    ) {
+        duration -= (endTime - startTime)
+        val size = duration * oneSecondSize / 1000
+        val delSize = frameArray.getSize() - size
+        val startIndex = (startTime * oneSecondSize / 1000 + 0.5).toInt()
+        frameArray.delete(startIndex, startIndex + delSize.toInt())
+        addFrames(startIndex, frameArray, frameDuration)
+    }
+
 
     /**
      * Cut select
@@ -494,7 +523,7 @@ open class AudioWaveView @JvmOverloads constructor(
     private val fontMetrics = textTimePaint.fontMetrics
     private val top = fontMetrics.top
     private val bottom = fontMetrics.bottom
-    private val baseLineY =  topLineMargin/2 - top / 2 - bottom / 2 //基线中间点的y轴计算公式
+    private val baseLineY = topLineMargin / 2 - top / 2 - bottom / 2 //基线中间点的y轴计算公式
 
 
     protected val iconRect = Rect(0, 0, 0, 0)
@@ -617,16 +646,16 @@ open class AudioWaveView @JvmOverloads constructor(
 
                 iconRect.set(
                     (getLeftStartX() - iconSize / 2).toInt(),
-                    (height - bottomLineMargin  - iconSize/2).toInt(),
+                    (height - bottomLineMargin - iconSize / 2).toInt(),
                     (getLeftStartX() + iconSize / 2).toInt(),
-                    (height - bottomLineMargin + iconSize/2).toInt()
+                    (height - bottomLineMargin + iconSize / 2).toInt()
                 )
                 bitmap?.let { drawBitmap(it, null, iconRect, iconPaint) }
                 iconRect.set(
                     (getRightStartX() - iconSize / 2).toInt(),
-                    (height - bottomLineMargin  - iconSize/2).toInt(),
+                    (height - bottomLineMargin - iconSize / 2).toInt(),
                     (getRightStartX() + iconSize / 2).toInt(),
-                    (height - bottomLineMargin + iconSize/2).toInt()
+                    (height - bottomLineMargin + iconSize / 2).toInt()
                 )
                 bitmap?.let { drawBitmap(it, null, iconRect, iconPaint) }
             }

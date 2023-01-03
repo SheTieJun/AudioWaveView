@@ -8,18 +8,24 @@ class FrameArray() {
 
     private var rawFrameArray: ArrayList<Float> = ArrayList()
 
-    fun add(frames: FloatArray) {
-        frames.map {
-            rawFrameArray.add(it)
-        }
+    fun add(frames: Collection<Float>) {
+        rawFrameArray.addAll(frames)
+    }
+
+    fun add(frames: Array<Float>) {
+        rawFrameArray.addAll(frames)
+    }
+
+    fun add(index:Int,frames: Collection<Float>){
+        rawFrameArray.addAll(index,frames)
     }
 
     fun add(frame: Float) {
         rawFrameArray.add(frame)
     }
 
-    fun get(): FloatArray {
-        return rawFrameArray.toFloatArray()
+    fun get(): ArrayList<Float> {
+        return rawFrameArray
     }
 
     fun getSize(): Int {
