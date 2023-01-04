@@ -5,9 +5,11 @@ import android.os.Bundle
 import androidx.lifecycle.lifecycleScope
 import com.shetj.audiowaveview.databinding.ActivityMainBinding
 import com.shetj.waveview.AudioWaveView.OnChangeListener
+import com.shetj.waveview.FrameArray
 import com.shetj.waveview.covertToTimets
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import me.shetj.base.ktx.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -50,12 +52,12 @@ class MainActivity : AppCompatActivity() {
 
         binding.audioWaveView.setListener(object : OnChangeListener {
             override fun onUpdateCurrentPosition(position: Long) {
-                binding.time1.text = "中线："+position.covertToTimets()
+                binding.time1.text = "中线：" + position.covertToTimets()
             }
 
             override fun onUpdateCutPosition(startPosition: Long, endPosition: Long) {
-                binding.time2.text = "开始："+startPosition.covertToTimets()
-                binding.time3.text = "结束："+endPosition.covertToTimets()
+                binding.time2.text = "开始：" + startPosition.covertToTimets()
+                binding.time3.text = "结束：" + endPosition.covertToTimets()
             }
 
             override fun onCutAudio(startTime: Long, endTime: Long): Boolean {
@@ -69,6 +71,21 @@ class MainActivity : AppCompatActivity() {
 
         binding.pause.setOnClickListener {
             binding.audioWaveView.pausePlayAnim()
+        }
+        binding.replace.setOnClickListener {
+            binding.audioWaveView.startEditModel()
+
+            val newFrameArray = FrameArray()
+            var newDuration = 0L
+            launch {
+                repeat(25) {
+                    newDuration += 40
+                    newFrameArray.add((1..9).random().toFloat())
+                }
+            }
+            val cutStartTime = binding.audioWaveView.getCutStartTime()
+            val cutEndTime = binding.audioWaveView.getCutEndTime()
+            binding.audioWaveView.replaceFrames(cutStartTime, cutEndTime,newFrameArray,newDuration,true)
         }
     }
 }

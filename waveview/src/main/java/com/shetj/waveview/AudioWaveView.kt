@@ -41,8 +41,8 @@ open class AudioWaveView @JvmOverloads constructor(
     protected var changeListener: OnChangeListener? = null
     protected var duration: Long = 0 //总时间
     protected var currentPosition: Long = 0 //中线代表的进度
-    protected var startTime: Long = 0 //剪切开始时间
-    protected var endTime: Long = 0 //剪切结束时间
+    protected var mStartTime: Long = 0 //剪切开始时间
+    protected var mEndTime: Long = 0 //剪切结束时间
     protected var anima: ValueAnimator? = null
     protected var playAnima: ValueAnimator? = null
 
@@ -59,7 +59,7 @@ open class AudioWaveView @JvmOverloads constructor(
     protected var halfEmptyLength = 540
     protected val contentLength: Float  //总长度
         get() {
-            return frameArray.getSize() * (rectWidth + rectSpace)
+            return mFrameArray.getSize() * (rectWidth + rectSpace)
         }
 
     protected var rectStart = 0f //重复计算矩形的left,矩形宽度= rectEnd-rectStart
@@ -73,7 +73,7 @@ open class AudioWaveView @JvmOverloads constructor(
     protected var rectSpace: Float = dip2px(2f).toFloat() //间隔宽度
     protected val mGravityScroller = Scroller(getContext(), DecelerateInterpolator()) //模拟滚动的Scroller
 
-    protected var frameArray = FrameArray() //播放数据
+    protected var mFrameArray = FrameArray() //播放数据
 
     //刻度部分
     protected val rectTimeLine = RectF()//右边波纹矩形的数据，10个矩形复用一个rectF
@@ -146,19 +146,19 @@ open class AudioWaveView @JvmOverloads constructor(
 
     //region 用来计算是否绘制的相关偏移
     private var lastX: Float = 0.toFloat() // 用帮助手势滑动的帮助变量
-    protected var offsetLeftX = 0f //左边剪切线的偏移
-    protected var offsetRightX = 0f //右边剪切线的偏移
+    protected var offsetCutStartX = 0f //左边剪切线的偏移
+    protected var offsetCutEndX = 0f //右边剪切线的偏移
     protected var offsetX: Float = 0f
     protected open fun getStartX(): Float {
         return offsetX * mScaleFactor + halfEmptyLength
     }
 
     protected open fun getLeftStartX(): Float {
-        return getStartX() + offsetLeftX * mScaleFactor
+        return getStartX() + offsetCutStartX * mScaleFactor
     }
 
     protected open fun getRightStartX(): Float {
-        return getStartX() + offsetRightX * mScaleFactor
+        return getStartX() + offsetCutEndX * mScaleFactor
     }
     //endregion
 
@@ -321,6 +321,12 @@ open class AudioWaveView @JvmOverloads constructor(
     }
 
 
+    /**
+     * Set can scroll
+     *
+     * @param canScroll 是否可以通过手势进行滚动
+     * @param toEnd 是否直接滚动底部
+     */
     open fun setCanScroll(canScroll: Boolean, toEnd: Boolean = false) {
         this.canScroll = canScroll
         if (toEnd) {
@@ -328,14 +334,24 @@ open class AudioWaveView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Add frame
+     * 添加声音
+     * @param frame
+     * @param duration
+     */
     open fun addFrame(frame: Float, duration: Long) {
-        frameArray.add(frame)
+        mFrameArray.add(frame)
         offsetX += -(rectWidth + rectSpace)
         this.duration = duration
         checkOffsetX()
         postInvalidate()
     }
 
+    /**
+     * Scroll to end
+     * 快速到底不
+     */
     open fun scrollToEnd() {
         anima?.cancel()
         anima = ObjectAnimator.ofFloat(offsetX, -contentLength.toFloat()).also { an ->
@@ -352,7 +368,7 @@ open class AudioWaveView @JvmOverloads constructor(
     }
 
     open fun clearFrame() {
-        frameArray.reset()
+        mFrameArray.reset()
         offsetX = 0f
         postInvalidate()
     }
@@ -363,8 +379,8 @@ open class AudioWaveView @JvmOverloads constructor(
      * 开启编辑模式
      */
     open fun startEditModel() {
-        offsetRightX = (-offsetX).coerceAtLeast(min(100f, contentLength))
-        offsetLeftX = offsetRightX - min(100f, contentLength)
+        offsetCutEndX = (-offsetX).coerceAtLeast(min(100f, contentLength))
+        offsetCutStartX = offsetCutEndX - min(100f, contentLength)
         isEditModel = true
         updateSelectTimePosition()
         invalidate()
@@ -378,45 +394,76 @@ open class AudioWaveView @JvmOverloads constructor(
      */
     open fun startEditModel(startTime: Long? = null, endTime: Long? = null) {
         if ((startTime ?: 0) > (endTime ?: 0)) {
-            throw IllegalArgumentException("startTime > endTime ")
+            throw IllegalArgumentException("startTime($startTime) > endTime($endTime) ")
         }
-        offsetRightX = startTime?.coerceAtLeast(0)?.let {
+        offsetCutEndX = endTime?.coerceAtLeast(0)?.let {
             (it.times(contentLength) / duration).coerceAtLeast(min(100f, contentLength))
         } ?: kotlin.run { (-offsetX).coerceAtLeast(min(100f, contentLength)) }
-        offsetLeftX = endTime?.coerceAtLeast(0)?.let {
+
+        offsetCutStartX = startTime?.coerceAtLeast(0)?.let {
             (it.times(contentLength) / duration)
-        } ?: kotlin.run { offsetRightX - min(100f, contentLength) }
+        } ?: kotlin.run { offsetCutEndX - min(100f, contentLength) }
         isEditModel = true
         updateSelectTimePosition()
         invalidate()
     }
 
     open fun getFrames(): ArrayList<Float> {
-        return frameArray.get()
+        return mFrameArray.get()
     }
 
-    open fun addFrames(index: Int, frameArray: FrameArray, frameDuration: Long, editModel: Boolean = true) {
-        frameArray.add(index, frameArray.get())
+
+    /**
+     * Get index by time
+     *
+     * @param time 时间
+     * @return 当前时间的在FrameArray的位置
+     */
+    open fun getIndexByTime(time:Long):Int{
+        return  (time * oneSecondSize / 1000 + 0.5).toInt()
+    }
+    /**
+     * Add frames
+     *
+     * @param index 在什么位置添加
+     * @param newFrameArray 新的声音的数据
+     * @param frameDuration 新的声音的时间
+     * @param editModel 是否进入编辑模式，选择
+     */
+    open fun addFrames(index: Int, newFrameArray: FrameArray, frameDuration: Long, editModel: Boolean = true) {
+        mFrameArray.add(index, newFrameArray.get())
         duration += frameDuration
-        if (editModel) {
-            startEditModel(startTime, startTime + frameDuration)
-        }
     }
 
-
+    /**
+     * Replace frames
+     *
+     * @param startTime  被替换部分开始的时间
+     * @param endTime  被替换部分结束的时间
+     * @param newFrameArray 新的部分
+     * @param newFrameDuration  新的部分的宗师级
+     * @param editModel 替换后是否展示时间
+     */
     open fun replaceFrames(
         startTime: Long,
         endTime: Long,
-        frameArray: FrameArray,
-        frameDuration: Long,
+        newFrameArray: FrameArray,
+        newFrameDuration: Long,
         editModel: Boolean = true
     ) {
+        if (duration < endTime) {
+            throw IllegalArgumentException(" need endTime($endTime) < duration($duration)  ")
+        }
         duration -= (endTime - startTime)
         val size = duration * oneSecondSize / 1000
-        val delSize = frameArray.getSize() - size
-        val startIndex = (startTime * oneSecondSize / 1000 + 0.5).toInt()
-        frameArray.delete(startIndex, startIndex + delSize.toInt())
-        addFrames(startIndex, frameArray, frameDuration)
+        val delSize = mFrameArray.getSize() - size
+        mStartTime = startTime
+        val startIndex = getIndexByTime(startTime)
+        mFrameArray.delete(startIndex, startIndex + delSize.toInt())
+        addFrames(startIndex, newFrameArray, newFrameDuration)
+        if (editModel) {
+            startEditModel(mStartTime, mStartTime + newFrameDuration)
+        }
     }
 
 
@@ -426,15 +473,38 @@ open class AudioWaveView @JvmOverloads constructor(
      */
     open fun cutSelect() {
         if (!isEditModel) return
-        val isCutOk = changeListener?.onCutAudio(startTime, endTime) ?: true
+        val isCutOk = changeListener?.onCutAudio(mStartTime, mEndTime) ?: true
         if (isCutOk) {
-            duration -= (endTime - startTime)
+            duration -= (mEndTime - mStartTime)
             val size = duration * oneSecondSize / 1000
-            val delSize = frameArray.getSize() - size
-            deleteFrames(startTime, delSize.toInt())
+            val delSize = mFrameArray.getSize() - size
+            deleteFrames(mStartTime, delSize.toInt())
             checkOffsetX()
+            mStartTime = mEndTime
             closeEdit()
         }
+    }
+
+    /**
+     * 获取剪切模式是的开始时间
+     * @return
+     */
+    open fun getCutStartTime(): Long {
+        if (isEditModel) {
+            return mStartTime
+        }
+        return 0
+    }
+
+    /**
+     * 获取剪切模式是的结束时间
+     * @return
+     */
+    open fun getCutEndTime(): Long {
+        if (isEditModel) {
+            return mEndTime
+        }
+        return 0
     }
 
     open fun closeEdit() {
@@ -443,8 +513,8 @@ open class AudioWaveView @JvmOverloads constructor(
     }
 
     protected open fun deleteFrames(startTime: Long, delSize: Int) {
-        val startIndex = (startTime * oneSecondSize / 1000 + 0.5).toInt()
-        frameArray.delete(startIndex, startIndex + delSize)
+        val startIndex = getIndexByTime(time = startTime)
+        mFrameArray.delete(startIndex, startIndex + delSize)
     }
 
 
@@ -469,13 +539,13 @@ open class AudioWaveView @JvmOverloads constructor(
                         if (moveX > 0) {
                             //右滑动
                             if (isTouchLeft && isTouchRight) {
-                                offsetRightX = (offsetRightX + moveX).coerceAtLeast(offsetLeftX)
+                                offsetCutEndX = (offsetCutEndX + moveX).coerceAtLeast(offsetCutStartX)
                                     .coerceAtMost(contentLength.toFloat())
                                 isTouchLeft = false
                             } else if (isTouchLeft) {
-                                offsetLeftX = (offsetLeftX + moveX).coerceAtLeast(0f).coerceAtMost(offsetRightX)
+                                offsetCutStartX = (offsetCutStartX + moveX).coerceAtLeast(0f).coerceAtMost(offsetCutEndX)
                             } else if (isTouchRight) {
-                                offsetRightX = (offsetRightX + moveX).coerceAtLeast(offsetLeftX)
+                                offsetCutEndX = (offsetCutEndX + moveX).coerceAtLeast(offsetCutStartX)
                                     .coerceAtMost(contentLength.toFloat())
                                 if (lastX > width - antoMoveLimit) {
                                     offsetX = (offsetX - 5).coerceAtMost(0f)
@@ -486,15 +556,15 @@ open class AudioWaveView @JvmOverloads constructor(
                         } else {
                             //左滑动
                             if (isTouchLeft && isTouchRight) {
-                                offsetLeftX = (offsetLeftX + moveX).coerceAtLeast(0f).coerceAtMost(offsetRightX)
+                                offsetCutStartX = (offsetCutStartX + moveX).coerceAtLeast(0f).coerceAtMost(offsetCutEndX)
                                 isTouchRight = false
                             } else if (isTouchLeft) {
-                                offsetLeftX = (offsetLeftX + moveX).coerceAtLeast(0f).coerceAtMost(offsetRightX)
+                                offsetCutStartX = (offsetCutStartX + moveX).coerceAtLeast(0f).coerceAtMost(offsetCutEndX)
                                 if (lastX < antoMoveLimit) {
                                     offsetX = (offsetX + 5).coerceAtLeast(-contentLength.toFloat())
                                 }
                             } else if (isTouchRight) {
-                                offsetRightX = (offsetRightX + moveX).coerceAtLeast(offsetLeftX)
+                                offsetCutEndX = (offsetCutEndX + moveX).coerceAtLeast(offsetCutStartX)
                                     .coerceAtMost(contentLength.toFloat())
                             }
                             updateSelectTimePosition()
@@ -515,9 +585,9 @@ open class AudioWaveView @JvmOverloads constructor(
     }
 
     protected open fun updateSelectTimePosition() {
-        this.startTime = (duration * abs(offsetLeftX) / contentLength).toLong()
-        this.endTime = (duration * abs(offsetRightX) / contentLength).toLong()
-        changeListener?.onUpdateCutPosition(startTime, endTime)
+        this.mStartTime = (duration * abs(offsetCutStartX) / contentLength).toLong()
+        this.mEndTime = (duration * abs(offsetCutEndX) / contentLength).toLong()
+        changeListener?.onUpdateCutPosition(mStartTime, mEndTime)
     }
 
     private val fontMetrics = textTimePaint.fontMetrics
@@ -562,7 +632,7 @@ open class AudioWaveView @JvmOverloads constructor(
                 }
             }
             // 画声音播放矩形
-            frameArray.get().forEachIndexed { index, value ->
+            mFrameArray.get().forEachIndexed { index, value ->
 
                 rectStart =
                     getStartX() + index * rectWidth * mScaleFactor + rectSpace * mScaleFactor * index
@@ -664,9 +734,9 @@ open class AudioWaveView @JvmOverloads constructor(
         }
     }
 
-    protected open fun getStartTs() = (duration * abs(offsetLeftX) / contentLength).toLong().covertToTimets()
+    protected open fun getStartTs() = (duration * abs(offsetCutStartX) / contentLength).toLong().covertToTimets()
 
-    protected open fun getEndTs() = (duration * abs(offsetRightX) / contentLength).toLong().covertToTimets()
+    protected open fun getEndTs() = (duration * abs(offsetCutEndX) / contentLength).toLong().covertToTimets()
 
 
     protected open fun startAnimaFling() {
@@ -691,11 +761,12 @@ open class AudioWaveView @JvmOverloads constructor(
     /**
      * Start play anim
      * 开始播放动画
+     * @param speed 几倍速进行播放动画，默认1f
      */
-    fun startPlayAnim() {
+    fun startPlayAnim(speed:Float = 1.0f) {
         playAnima?.cancel()
-        playAnima = ObjectAnimator.ofFloat(offsetX, -contentLength.toFloat()).also { an ->
-            an.duration = duration - currentPosition
+        playAnima = ObjectAnimator.ofFloat(offsetX, -contentLength).also { an ->
+            an.duration = ((duration - currentPosition)/speed).toLong()
             an.interpolator = LinearInterpolator()
             an.addUpdateListener { animation ->
                 val changeSize = animation.animatedValue as Float
@@ -727,7 +798,7 @@ open class AudioWaveView @JvmOverloads constructor(
 
         /**
          * On update current position
-         * 更新当前的位置
+         * 更新当前的位置,中线表示的时间
          * @param position
          */
         fun onUpdateCurrentPosition(position: Long)

@@ -15,6 +15,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:wv_rect_level="10"
         app:wv_bottom_line_margin="20dp"
         app:wv_can_scroll="true"
         app:wv_center_line_width="2dp"
@@ -103,6 +104,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="暂停" />
+        <com.google.android.material.chip.Chip
+            android:id="@+id/replace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="替换frame" />
     </com.google.android.material.chip.ChipGroup>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

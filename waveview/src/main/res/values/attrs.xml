@@ -13,15 +13,21 @@
         <!--        顶部线和底部线的颜色-->
         <attr name="wv_top_bottom_line_width" format="dimension" />
         <!--        矩形相关设置-->
-        <attr name="wv_rect_level" format="integer"/>
+        <!--    矩形分几个级别，默认10种高度的矩形-->
+        <attr name="wv_rect_level" format="integer" />
+        <!--    矩形的宽度-->
         <attr name="wv_rect_width" format="dimension" />
+        <!--    矩形的间距-->
         <attr name="wv_rect_space" format="dimension" />
+        <!--    矩形中线右边的颜色-->
         <attr name="wv_rect_right_color" format="color" />
+        <!--   矩形中线左边的颜色 -->
         <attr name="wv_rect_left_color" format="color" />
 
         <!--        中线的颜色，宽度-->
         <attr name="wv_center_line_color" format="color" />
         <attr name="wv_center_line_width" format="dimension" />
+
         <!--        剪切部分的设置-->
         <!--        icon 资源-->
         <attr name="wv_cut_icon" format="reference" />
