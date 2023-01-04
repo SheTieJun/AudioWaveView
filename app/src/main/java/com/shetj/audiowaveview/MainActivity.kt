@@ -10,6 +10,7 @@ import com.shetj.waveview.covertToTimets
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import me.shetj.base.ktx.launch
+import me.shetj.base.ktx.showToast
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -46,7 +47,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.closeEdit.setOnClickListener {
-            binding.audioWaveView.closeEdit()
+            binding.audioWaveView.closeEditModel()
         }
 
 
@@ -73,8 +74,10 @@ class MainActivity : AppCompatActivity() {
             binding.audioWaveView.pausePlayAnim()
         }
         binding.replace.setOnClickListener {
-            binding.audioWaveView.startEditModel()
-
+            if (!binding.audioWaveView.isEditModel()) {
+                "请先开始编辑模式，将会替换选中的部分".showToast()
+                return@setOnClickListener
+            }
             val newFrameArray = FrameArray()
             var newDuration = 0L
             launch {
@@ -86,6 +89,9 @@ class MainActivity : AppCompatActivity() {
             val cutStartTime = binding.audioWaveView.getCutStartTime()
             val cutEndTime = binding.audioWaveView.getCutEndTime()
             binding.audioWaveView.replaceFrames(cutStartTime, cutEndTime,newFrameArray,newDuration,true)
+        }
+        binding.clean.setOnClickListener {
+            binding.audioWaveView.clearFrame()
         }
     }
 }
