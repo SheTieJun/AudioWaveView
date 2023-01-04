@@ -10,7 +10,6 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
-import android.util.Log
 import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
@@ -33,7 +32,7 @@ open class AudioWaveView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    companion object{
+    companion object {
         const val TAG = "AudioWaveView"
     }
 
@@ -172,7 +171,6 @@ open class AudioWaveView @JvmOverloads constructor(
     protected var mIsTouchLeft = false //是否触摸左边
     protected var mIsTouchRight = false //是否触摸右边
     protected var mCanScroll = true //是否可以滑动，建议在进行动态添加操作的时候禁止滑动
-    protected var mIsReplaceModel = false //是否是替换模式
 
     protected fun dip2px(dpVal: Float): Int {
         return TypedValue.applyDimension(
@@ -342,17 +340,25 @@ open class AudioWaveView @JvmOverloads constructor(
     }
 
     /**
+     * 是否已经滚到了底部
+     * @return
+     */
+    open fun isScrollEnd(): Boolean {
+        return mOffsetX == - mContentLength
+    }
+
+    /**
      * Add frame
      * 添加声音
      * @param frame
-     * @param duration
+     * @param duration 总时长
      */
     open fun addFrame(frame: Float, duration: Long) {
         mFrameArray.add(frame)
         mOffsetX += -(mRectWidth + mRectSpace)
         this.mDuration = duration
         checkOffsetX()
-        postInvalidate()
+        invalidate()
     }
 
     /**
@@ -361,7 +367,7 @@ open class AudioWaveView @JvmOverloads constructor(
      */
     open fun scrollToEnd() {
         mAnima?.cancel()
-        mAnima = ObjectAnimator.ofFloat(mOffsetX, -mContentLength.toFloat()).also { an ->
+        mAnima = ObjectAnimator.ofFloat(mOffsetX, -mContentLength).also { an ->
             an.duration = 50
             an.interpolator = DecelerateInterpolator()
             an.addUpdateListener { animation ->
@@ -430,7 +436,7 @@ open class AudioWaveView @JvmOverloads constructor(
      * @return
      */
     open fun getCutStartTime(): Long {
-        if (mIsEditModel) {
+        if (isEditModel()) {
             return mStartTime
         }
         return 0
@@ -441,7 +447,7 @@ open class AudioWaveView @JvmOverloads constructor(
      * @return
      */
     open fun getCutEndTime(): Long {
-        if (mIsEditModel) {
+        if (isEditModel()) {
             return mEndTime
         }
         return 0
@@ -454,6 +460,24 @@ open class AudioWaveView @JvmOverloads constructor(
     open fun closeEditModel() {
         mIsEditModel = false
         invalidate()
+    }
+
+
+    /**
+     * 开始覆盖模式
+     * 删除中线以后的数据，触发剪切
+     */
+    open fun startOverwrite() {
+        if (isEditModel()) {
+            closeEditModel()
+        }
+        val isCutOk = mChangeListener?.onCutAudio(mCurrentPosition,mDuration) ?: true
+        if (isCutOk) {
+            deleteFrames(mCurrentPosition,mDuration)
+            mStartTime = mEndTime
+            checkOffsetX()
+            closeEditModel()
+        }
     }
 
     /**
@@ -523,6 +547,7 @@ open class AudioWaveView @JvmOverloads constructor(
         if (editModel) {
             startEditModel(mStartTime, mStartTime + newFrameDuration)
         }
+        checkOffsetX()
     }
 
 
@@ -534,18 +559,28 @@ open class AudioWaveView @JvmOverloads constructor(
         if (!mIsEditModel) return
         val isCutOk = mChangeListener?.onCutAudio(mStartTime, mEndTime) ?: true
         if (isCutOk) {
-            mDuration -= (mEndTime - mStartTime)
-            val size = mDuration * mOneSecondSize / 1000
-            val delSize = mFrameArray.getSize() - size
-            deleteFrames(mStartTime, delSize.toInt())
-            checkOffsetX()
+            deleteFrames(mStartTime,mEndTime)
             mStartTime = mEndTime
+            checkOffsetX()
             closeEditModel()
         }
     }
 
 
-    protected open fun deleteFrames(startTime: Long, delSize: Int) {
+    /**
+     * Delete frames
+     * 删除声音数据
+     * @param startTime 开始时间
+     * @param endTime 结束时间
+     */
+    protected open fun deleteFrames(startTime: Long, endTime: Long) {
+        mDuration -= (endTime - startTime)
+        val size = mDuration * mOneSecondSize / 1000
+        val delSize = mFrameArray.getSize() - size
+        deleteFrames(startTime, delSize.toInt())
+    }
+
+    private fun deleteFrames(startTime: Long, delSize: Int) {
         val startIndex = getIndexByTime(time = startTime)
         mFrameArray.delete(startIndex, startIndex + delSize)
     }
@@ -573,14 +608,14 @@ open class AudioWaveView @JvmOverloads constructor(
                             //右滑动
                             if (mIsTouchLeft && mIsTouchRight) {
                                 mOffsetCutEndX = (mOffsetCutEndX + moveX).coerceAtLeast(mOffsetCutStartX)
-                                    .coerceAtMost(mContentLength.toFloat())
+                                    .coerceAtMost(mContentLength)
                                 mIsTouchLeft = false
                             } else if (mIsTouchLeft) {
                                 mOffsetCutStartX =
                                     (mOffsetCutStartX + moveX).coerceAtLeast(0f).coerceAtMost(mOffsetCutEndX)
                             } else if (mIsTouchRight) {
                                 mOffsetCutEndX = (mOffsetCutEndX + moveX).coerceAtLeast(mOffsetCutStartX)
-                                    .coerceAtMost(mContentLength.toFloat())
+                                    .coerceAtMost(mContentLength)
                                 if (mLastX > width - antoMoveLimit) {
                                     mOffsetX = (mOffsetX - 5).coerceAtMost(0f)
                                 }
@@ -597,11 +632,11 @@ open class AudioWaveView @JvmOverloads constructor(
                                 mOffsetCutStartX =
                                     (mOffsetCutStartX + moveX).coerceAtLeast(0f).coerceAtMost(mOffsetCutEndX)
                                 if (mLastX < antoMoveLimit) {
-                                    mOffsetX = (mOffsetX + 5).coerceAtLeast(-mContentLength.toFloat())
+                                    mOffsetX = (mOffsetX + 5).coerceAtLeast(-mContentLength)
                                 }
                             } else if (mIsTouchRight) {
                                 mOffsetCutEndX = (mOffsetCutEndX + moveX).coerceAtLeast(mOffsetCutStartX)
-                                    .coerceAtMost(mContentLength.toFloat())
+                                    .coerceAtMost(mContentLength)
                             }
                             updateSelectTimePosition()
                             invalidate()

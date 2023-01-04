@@ -71,21 +71,28 @@
                 android:id="@+id/start_add"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
+                android:layout_marginEnd="5dp"
                 android:text="添加frame" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/replace"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="5dp"
                 android:text="替换frame" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/clean"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
+                android:layout_marginEnd="5dp"
                 android:text="清空frame" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/overwrite"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="覆盖模式"/>
 
 
         </com.google.android.material.chip.ChipGroup>

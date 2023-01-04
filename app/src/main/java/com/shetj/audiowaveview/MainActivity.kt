@@ -93,5 +93,11 @@ class MainActivity : AppCompatActivity() {
         binding.clean.setOnClickListener {
             binding.audioWaveView.clearFrame()
         }
+        binding.overwrite.setOnClickListener {
+            binding.audioWaveView.startOverwrite()
+            duration = binding.audioWaveView.getDuration()
+            binding.startAdd.performClick()
+
+        }
     }
 }
