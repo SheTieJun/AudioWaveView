@@ -13,6 +13,8 @@
         <!--        顶部线和底部线的颜色-->
         <attr name="wv_top_bottom_line_width" format="dimension" />
         <!--        矩形相关设置-->
+        <!--        缩放级别内部限制,默认1f-->
+        <attr name="wv_rect_scale" format="float" />
         <!--    矩形分几个级别，默认10种高度的矩形-->
         <attr name="wv_rect_level" format="integer" />
         <!--    矩形的宽度-->

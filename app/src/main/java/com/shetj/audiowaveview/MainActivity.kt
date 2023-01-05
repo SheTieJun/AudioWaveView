@@ -64,6 +64,10 @@ class MainActivity : AppCompatActivity() {
             override fun onCutAudio(startTime: Long, endTime: Long): Boolean {
                 return true
             }
+
+            override fun onUpdateScale(scale: Float) {
+                binding.viewScale.text = "缩放级别：$scale"
+            }
         })
 
         binding.play.setOnClickListener {

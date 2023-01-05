@@ -6,7 +6,11 @@
 - [X] 编辑模式
 - [X] 整段替换声波
 - [X] 缩放声波
-- [X] 覆盖模式实现
+- [X] 覆盖录制逻辑实现
+
+> 只做交互逻辑，不做其他逻辑，所以不支持PCM,但是使用者可以audio文件通过转PCM获取db,
+> 在根据自己的实际情况设置wv_rect_level和wv_one_second_rect_size
+> 然后添加frame
 
 | 正常模式                  | 编辑模式                  |     |
 |-----------------------|-----------------------|-----|
@@ -46,6 +50,8 @@
     <!--        顶部线和底部线的颜色-->
     <attr name="wv_top_bottom_line_width" format="dimension" />
     <!--        矩形相关设置-->
+    <!--        缩放级别内部限制,默认1f-->
+    <attr name="wv_rect_scale" format="float" />
     <!--    矩形分几个级别，默认10种高度的矩形-->
     <attr name="wv_rect_level" format="integer" />
     <!--    矩形的宽度-->
@@ -87,6 +93,28 @@
 </declare-styleable>
 ```
 
+## API
+- startEditModel()
+- closeEditModel()
+- getCutEndTime()
+- getCutStartTime()
+- cutSelect()
+- startOverwrite()
+- addFrame()
+- addFrames()
+- clearFrame()
+- getFrames()
+- deleteFrames()
+- replaceFrames()
+- scrollToEnd()
+- setCanScroll()
+- setListener()
+- startPlayAnim()
+- pausePlayAnim() 
+- getDuration()
+- getCurrentPosition()
+- setCurrentPosition()
+
 ## 实现原理
 
 ### 1. 滚动实现
@@ -97,9 +125,10 @@
 > ScaleGestureDetector + 计算展示UI
 
 ### 3. 覆盖模式实现
-> 剪切中线以后的数据（触发剪切）,然后开始添加数据
+> 剪切中线以后的数据（触发剪切）,然后开始末端添加数据
 
+### 4. 替换整段实现
+> 剪切选中部分（触发剪切），然后插入数据
 
 ## TODO
-- [ ] 是否支持PCM
-- [ ] 尝试支持添加交互：覆盖录制选中区域
+- [ ] 添加交互：覆盖录制选中区域
