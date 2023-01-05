@@ -366,18 +366,23 @@ open class AudioWaveView @JvmOverloads constructor(
      * Scroll to end
      * 快速到底不
      */
-    open fun scrollToEnd() {
+    open fun scrollToEnd(needAnim:Boolean = true) {
         mAnima?.cancel()
-        mAnima = ObjectAnimator.ofFloat(mOffsetX, -mContentLength).also { an ->
-            an.duration = 50
-            an.interpolator = DecelerateInterpolator()
-            an.addUpdateListener { animation ->
-                val changeSize = animation.animatedValue as Float
-                mOffsetX = changeSize
-                checkOffsetX()
-                postInvalidateOnAnimation()
+        if (needAnim){
+            mAnima = ObjectAnimator.ofFloat(mOffsetX, -mContentLength).also { an ->
+                an.duration = 50
+                an.interpolator = DecelerateInterpolator()
+                an.addUpdateListener { animation ->
+                    val changeSize = animation.animatedValue as Float
+                    mOffsetX = changeSize
+                    checkOffsetX()
+                    postInvalidateOnAnimation()
+                }
+                an.start()
             }
-            an.start()
+        }else{
+            mOffsetX = -mContentLength
+            invalidate()
         }
     }
 
@@ -476,8 +481,8 @@ open class AudioWaveView @JvmOverloads constructor(
         if (isCutOk) {
             deleteFrames(mCurrentPosition, mDuration)
             mCutStartTime = mCutEndTime
-            checkOffsetX()
-            closeEditModel()
+            invalidate()
+            scrollToEnd(false)
         }
     }
 

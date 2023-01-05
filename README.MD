@@ -8,9 +8,11 @@
 - [X] 缩放声波
 - [X] 覆盖录制逻辑实现
 
-> 只做交互逻辑，不做其他逻辑，所以不支持PCM,但是使用者可以audio文件通过转PCM获取db,
-> 在根据自己的实际情况设置wv_rect_level和wv_one_second_rect_size
-> 然后添加frame
+> 只做交互逻辑，不做其他逻辑，所以不直接支持PCM,但是使用者可以audio文件通过转PCM获取db,
+> 
+> 在根据自己的实际情况设置wv_rect_level和wv_one_second_rect_size 然后添加frame
+> 
+> 也可以自行继承实现
 
 | 正常模式                  | 编辑模式                  |     |
 |-----------------------|-----------------------|-----|
@@ -94,31 +96,23 @@
 ```
 
 ## API
-- startEditModel()
-- closeEditModel()
-- getCutEndTime()
-- getCutStartTime()
-- cutSelect()
-- startOverwrite()
-- addFrame()
-- addFrames()
-- clearFrame()
-- getFrames()
-- deleteFrames()
-- replaceFrames()
-- scrollToEnd()
-- setCanScroll()
-- setListener()
-- startPlayAnim()
-- pausePlayAnim() 
-- getDuration()
-- getCurrentPosition()
-- setCurrentPosition()
+- startEditModel
+- closeEditModel
+- cutSelect
+- startOverwrite
+- addFrame
+- addFrames
+- clearFrame
+- deleteFrames
+- replaceFrames
+- startPlayAnim
+- pausePlayAnim
 
 ## 实现原理
 
 ### 1. 滚动实现
 > 本质是通过一个偏移量的变化，达到滚得效果
+> 
 > 使用Scroller+DecelerateInterpolator 到达一个简单的阻尼效果
 
 ### 2. 缩放声波
@@ -128,7 +122,10 @@
 > 剪切中线以后的数据（触发剪切）,然后开始末端添加数据
 
 ### 4. 替换整段实现
-> 剪切选中部分（触发剪切），然后插入数据
+> 剪切选中部分数据，然后插入数据
+> 
+> 文件部分操作，需要自行完成
 
 ## TODO
 - [ ] 添加交互：覆盖录制选中区域
+- [ ] 添加DEMO: 真实录音，剪切，播放
