@@ -28,7 +28,6 @@ import me.shetj.ffmpeg.buildCutCommand
 import me.shetj.ffmpeg.buildMergeCommand
 import me.shetj.recorder.core.FileUtils
 import me.shetj.recorder.core.RecordState
-import me.shetj.recorder.core.RecordState.PAUSED
 import me.shetj.recorder.core.SimRecordListener
 
 class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>() {
@@ -72,7 +71,6 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
     private val playCallback = object : SimPlayerListener() {
         override fun onStart(duration: Int) {
             super.onStart(duration)
-            mViewModel.difDuration = getRecordDuration() - duration
             mViewBinding.waveview.startPlayAnim()
         }
 
@@ -80,23 +78,6 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
             super.onResume()
             mViewBinding.waveview.startPlayAnim()
 
-        }
-
-        override fun onStop() {
-            super.onStop()
-            mViewBinding.waveview.pausePlayAnim()
-        }
-
-        override fun onCompletion() {
-            super.onCompletion()
-            mViewBinding.playTime.text = Util.formatSeconds4(getRecordDuration())
-            mViewBinding.waveview.pausePlayAnim()
-        }
-
-        override fun onProgress(current: Int, duration: Int) {
-            super.onProgress(current, duration)
-            mViewBinding.playTime.text =
-                Util.formatSeconds4(current.toLong() + (current / duration.toFloat() * mViewModel.difDuration).toInt())
         }
 
         override fun onPause() {
@@ -142,22 +123,12 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
                 mViewBinding.playTime.text = Util.formatSeconds4(position)
                 mViewModel.timeLiveData.postValue(duration)
             }
-
-            override fun onUpdateCutPosition(startPosition: Long, endPosition: Long) {
-
-            }
-
             override suspend fun onCutAudio(startTime: Long, endTime: Long): Boolean {
                 if (startTime == endTime) return true
                 return withIO {
                     return@withIO cutAudio(startTime, endTime)
                 }
             }
-
-            override fun onUpdateScale(scale: Float) {
-
-            }
-
             override fun onEditModelChange(isEditModel: Boolean) {
                 mViewBinding.ivRecordState.isEnabled = !isEditModel
                 mViewBinding.cancelCut.isVisible = isEditModel
@@ -231,8 +202,10 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
         mergeCommand.toJson().logI("record")
         val mergeState = FFmpegKit.runCommand(mergeCommand)
 
-//        FileUtils.deleteFile(leftAudio)
-//        FileUtils.deleteFile(rightAudio)
+        //4.删除临时的音频文件
+        FileUtils.deleteFile(leftAudio)
+        FileUtils.deleteFile(rightAudio)
+        FileUtils.deleteFile(recordTool.getSaveUrl())
         if (mergeState == OnFinish) {
             recordTool.updateSaveFile(mergeAudio)
             val time = mViewBinding.waveview.getDuration()
