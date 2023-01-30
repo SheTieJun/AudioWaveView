@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">录音剪切</string>
+    <string name="def_time">00:00.00</string>
+</resources>

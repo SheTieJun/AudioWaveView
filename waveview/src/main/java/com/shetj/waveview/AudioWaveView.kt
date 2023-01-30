@@ -236,7 +236,7 @@ open class AudioWaveView @JvmOverloads constructor(
         //通过偏移量得到时间
         if (mContentLength == 0F) return
         this.mCurrentPosition = (mDuration * abs(mOffsetX) / mContentLength).toLong()
-        mChangeListener?.onUpdateCurrentPosition(mCurrentPosition)
+        mChangeListener?.onUpdateCurrentPosition(mCurrentPosition,mDuration)
     }
 
     init {
@@ -387,12 +387,38 @@ open class AudioWaveView @JvmOverloads constructor(
     }
 
     /**
+     * Scroll to end
+     * 快速到底不
+     */
+    open fun scrollToStart(needAnim:Boolean = true) {
+        mAnima?.cancel()
+        if (needAnim){
+            mAnima = ObjectAnimator.ofFloat(mOffsetX, 0f).also { an ->
+                an.duration = 50
+                an.interpolator = DecelerateInterpolator()
+                an.addUpdateListener { animation ->
+                    val changeSize = animation.animatedValue as Float
+                    mOffsetX = changeSize
+                    checkOffsetX()
+                    postInvalidateOnAnimation()
+                }
+                an.start()
+            }
+        }else{
+            mOffsetX = 0f
+            invalidate()
+        }
+    }
+
+
+    /**
      * Clear frame
      * 情况
      */
     open fun clearFrame() {
         mDuration = 0
         mIsEditModel = false
+        mChangeListener?.onEditModelChange(false)
         mFrameArray.reset()
         mCutStartTime = 0
         mCutEndTime = 0
@@ -411,6 +437,7 @@ open class AudioWaveView @JvmOverloads constructor(
         mOffsetCutEndX = (-mOffsetX).coerceAtLeast(min(100f, mContentLength))
         mOffsetCutStartX = mOffsetCutEndX - min(100f, mContentLength)
         mIsEditModel = true
+        mChangeListener?.onEditModelChange(true)
         updateSelectTimePosition()
         invalidate()
     }
@@ -433,6 +460,7 @@ open class AudioWaveView @JvmOverloads constructor(
             (it.times(mContentLength) / mDuration)
         } ?: kotlin.run { mOffsetCutEndX - min(100f, mContentLength) }
         mIsEditModel = true
+        mChangeListener?.onEditModelChange(true)
         updateSelectTimePosition()
         invalidate()
     }
@@ -465,6 +493,7 @@ open class AudioWaveView @JvmOverloads constructor(
      */
     open fun closeEditModel() {
         mIsEditModel = false
+        mChangeListener?.onEditModelChange(false)
         invalidate()
     }
 
@@ -473,7 +502,7 @@ open class AudioWaveView @JvmOverloads constructor(
      * 开始覆盖模式
      * 删除中线以后的数据，触发剪切
      */
-    open fun startOverwrite() {
+    open suspend fun startOverwrite() {
         if (isEditModel()) {
             closeEditModel()
         }
@@ -578,7 +607,7 @@ open class AudioWaveView @JvmOverloads constructor(
      * Cut select
      * 剪切掉选中部分
      */
-    open fun cutSelect() {
+    open suspend fun cutSelect() {
         if (!mIsEditModel) return
         val isCutOk = mChangeListener?.onCutAudio(mCutStartTime, mCutEndTime) ?: true
         if (isCutOk) {
@@ -898,7 +927,7 @@ open class AudioWaveView @JvmOverloads constructor(
     fun setListener(callBack: OnChangeListener?) {
         this.mChangeListener = callBack
         mChangeListener?.let {
-            it.onUpdateCurrentPosition(mCurrentPosition)
+            it.onUpdateCurrentPosition(mCurrentPosition,mDuration)
             it.onUpdateScale(mScaleFactor)
             if (isEditModel()) {
                 it.onUpdateCutPosition(mCutStartTime, mCutEndTime)
@@ -911,9 +940,10 @@ open class AudioWaveView @JvmOverloads constructor(
         /**
          * On update current position
          * 更新当前的位置,中线表示的时间
-         * @param position
+         * @param position 中线的时间
+         * @param duration 总时长
          */
-        fun onUpdateCurrentPosition(position: Long) {
+        fun onUpdateCurrentPosition(position: Long,duration:Long) {
 
         }
 
@@ -934,7 +964,7 @@ open class AudioWaveView @JvmOverloads constructor(
          * @param endTime
          * @return 是否剪切成功 ,只有成功了才会进行后续操作，如
          */
-        fun onCutAudio(startTime: Long, endTime: Long): Boolean {
+        suspend fun onCutAudio(startTime: Long, endTime: Long): Boolean {
             return true
         }
 
@@ -945,6 +975,10 @@ open class AudioWaveView @JvmOverloads constructor(
          * @param scale
          */
         fun onUpdateScale(scale: Float) {
+
+        }
+
+        fun onEditModelChange(isEditModel:Boolean){
 
         }
     }

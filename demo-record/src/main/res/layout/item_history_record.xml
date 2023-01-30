@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardCornerRadius="15dp">
+
+    <ImageView
+        android:id="@+id/iv_play"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="15dp"
+        android:background="@drawable/bg_circle_record_f5f5f5"
+        android:padding="12dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/icon_play_audio"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/blackSecondText" />
+
+    <TextView
+        android:id="@+id/tv_record_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="语音"
+        android:textColor="#FF333333"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@id/checkbox"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toEndOf="@id/iv_play"
+        app:layout_constraintTop_toTopOf="@id/iv_play" />
+
+    <TextView
+        android:id="@+id/tv_record_length"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:text="01:01"
+        android:textColor="#FF999999"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@id/iv_play"
+        app:layout_constraintStart_toEndOf="@id/iv_play"
+        app:layout_constraintStart_toStartOf="@id/tv_record_name" />
+
+    <TextView
+        android:id="@+id/tv_record_create_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:maxLines="1"
+        android:text="01:01"
+        android:textColor="#FF999999"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@id/iv_play"
+        app:layout_constraintStart_toEndOf="@id/tv_record_length" />
+
+
+    <CheckBox
+        android:id="@+id/checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/iv_play"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/tv_record_name"
+        app:layout_constraintTop_toTopOf="@id/iv_play" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

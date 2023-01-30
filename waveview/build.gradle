@@ -33,3 +33,5 @@ android {
 dependencies {
 
 }
+
+apply from: "uploadLocal.gradle"

@@ -43,7 +43,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.cutEdit.setOnClickListener {
-            binding.audioWaveView.cutSelect()
+            launch {
+                binding.audioWaveView.cutSelect()
+            }
         }
 
         binding.closeEdit.setOnClickListener {
@@ -52,7 +54,7 @@ class MainActivity : AppCompatActivity() {
 
 
         binding.audioWaveView.setListener(object : OnChangeListener {
-            override fun onUpdateCurrentPosition(position: Long) {
+            override fun onUpdateCurrentPosition(position: Long,duration:Long) {
                 binding.time1.text = "中线：" + position.covertToTimets()
             }
 
@@ -61,12 +63,16 @@ class MainActivity : AppCompatActivity() {
                 binding.time3.text = "结束：" + endPosition.covertToTimets()
             }
 
-            override fun onCutAudio(startTime: Long, endTime: Long): Boolean {
+            override suspend fun onCutAudio(startTime: Long, endTime: Long): Boolean {
                 return true
             }
 
             override fun onUpdateScale(scale: Float) {
                 binding.viewScale.text = "缩放级别：$scale"
+            }
+
+            override fun onEditModelChange(isEditModel: Boolean) {
+                //编辑模式变更通知，进行UI变化
             }
         })
 
@@ -98,10 +104,11 @@ class MainActivity : AppCompatActivity() {
             binding.audioWaveView.clearFrame()
         }
         binding.overwrite.setOnClickListener {
-            binding.audioWaveView.startOverwrite()
-            duration = binding.audioWaveView.getDuration()
-            binding.startAdd.performClick()
-
+            launch {
+                binding.audioWaveView.startOverwrite()
+                duration = binding.audioWaveView.getDuration()
+                binding.startAdd.performClick()
+            }
         }
     }
 }
