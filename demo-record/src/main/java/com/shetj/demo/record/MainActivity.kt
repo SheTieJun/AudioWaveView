@@ -13,6 +13,8 @@ import com.shetj.demo.record.utils.PlaySate.Stop
 import com.shetj.demo.record.utils.SimPlayerListener
 import com.shetj.demo.record.utils.Util
 import com.shetj.waveview.AudioWaveView.OnChangeListener
+import com.shetj.waveview.covertToTimets
+import me.shetj.base.ktx.isTrue
 import me.shetj.base.ktx.launch
 import me.shetj.base.ktx.logI
 import me.shetj.base.ktx.start
@@ -37,7 +39,6 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
     private val callback: SimRecordListener = object : SimRecordListener() {
 
         override fun onStart() {
-
             updateUIState(RecordState.RECORDING)
         }
 
@@ -63,10 +64,11 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
             mViewBinding.waveview.clearFrame()
             mViewModel.timeLiveData.postValue(0)
             mViewBinding.playTime.text = Util.formatSeconds4(0)
+            mViewBinding.recordStateMsg.text = ""
         }
     }
 
-    private val recordTool by lazy { RecorderKit(context = this, callBack = callback) }
+    private val recorder by lazy { RecorderKit(context = this, callBack = callback) }
 
     private val playCallback = object : SimPlayerListener() {
         override fun onStart(duration: Int) {
@@ -100,7 +102,7 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
                 mViewBinding.waveview.scrollToStart()
                 needToStart = false
             }
-            audioPlayer.playOrPause(recordTool.getSaveUrl(), playCallback)
+            audioPlayer.playOrPause(recorder.getSaveUrl(), playCallback)
         }
 
         mViewBinding.cancelCut.setOnClickListener {
@@ -122,27 +124,52 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
                 audioPlayer.setSeekToPlay(position.toInt())
                 mViewBinding.playTime.text = Util.formatSeconds4(position)
                 mViewModel.timeLiveData.postValue(duration)
+                mViewModel.recordOverWriter.postValue(position != duration)
             }
+
             override suspend fun onCutAudio(startTime: Long, endTime: Long): Boolean {
                 if (startTime == endTime) return true
+                if (startTime == 0L && endTime == mViewBinding.waveview.getDuration()) {
+                    recorder.updateSaveFile(recorder.getAudioFileName("merge"))
+                    return true
+                }
                 return withIO {
                     return@withIO cutAudio(startTime, endTime)
                 }
             }
+
+            override fun onUpdateCutPosition(startPosition: Long, endPosition: Long) {
+                super.onUpdateCutPosition(startPosition, endPosition)
+                mViewBinding.startCutTime.text = "开始：" + startPosition.covertToTimets()
+                mViewBinding.endCutTime.text = "结束：" + endPosition.covertToTimets()
+            }
+
             override fun onEditModelChange(isEditModel: Boolean) {
                 mViewBinding.ivRecordState.isEnabled = !isEditModel
                 mViewBinding.cancelCut.isVisible = isEditModel
                 mViewBinding.cutAudio.isVisible = isEditModel
                 mViewBinding.startCut.isVisible = !isEditModel
             }
+
+            override fun onCutFinish() {
+                super.onCutFinish()
+                val duration = mViewBinding.waveview.getDuration()
+                recorder.setTime(duration)
+                mViewModel.timeLiveData.postValue(duration)
+            }
+
+            override fun onUpdateScale(scale: Float) {
+                super.onUpdateScale(scale)
+                mViewBinding.viewScale.text = "缩放级别：$scale"
+            }
         })
 
         mViewBinding.ivRecordHistory.setOnClickListener {
-            if (!recordTool.hasRecord()) {
+            if (!recorder.hasRecord()) {
                 mViewModel.newRecordCount.postValue(0)
                 start<RecordHistoryActivity>()
             } else {
-                recordTool.complete()
+                recorder.complete()
             }
         }
 
@@ -150,7 +177,12 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
         mViewBinding.ivRecordState.setOnClickListener {
             startRequestPermission("startRequestPermission", Manifest.permission.RECORD_AUDIO) {
                 if (it) {
-                    recordTool.startOrPause()
+                    launch {
+                        if (mViewModel.recordOverWriter.isTrue()) {
+                            mViewBinding.waveview.startOverwrite()
+                        }
+                        recorder.startOrPause()
+                    }
                 }
             }
         }
@@ -163,6 +195,15 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
             mViewBinding.ivRecordHistory.updateCount(it)
         }
 
+        mViewModel.recordOverWriter.observe(this) {
+            if (recorder.canOverWriter()) {
+                if (it) {
+                    mViewBinding.recordStateMsg.text = "覆盖录制"
+                } else {
+                    mViewBinding.recordStateMsg.text = "继续录制"
+                }
+            }
+        }
 
         initPlayAudio()
     }
@@ -170,9 +211,9 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
     private suspend fun cutAudio(startTime: Long, endTime: Long): Boolean {
         //剪掉左边，剪掉右边，合并
         //1. 获取左边的
-        val leftAudio = recordTool.getAudioFileName("left")
+        val leftAudio = recorder.getAudioFileName("left")
         val leftCutCommand =
-            buildCutCommand(recordTool.getSaveUrl(), leftAudio, 0.0, startTime.toDouble())
+            buildCutCommand(recorder.getSaveUrl(), leftAudio, 0.0, startTime.toDouble())
         leftCutCommand.toJson().logI("record")
         val leftFFmpegState = FFmpegKit.runCommand(leftCutCommand)
         if (leftFFmpegState != OnFinish) {
@@ -181,9 +222,9 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
         }
 
         //2. 获取右边
-        val rightAudio = recordTool.getAudioFileName("right")
+        val rightAudio = recorder.getAudioFileName("right")
         val rightCutCommand = buildCutCommand(
-            recordTool.getSaveUrl(),
+            recorder.getSaveUrl(),
             rightAudio,
             endTime.toDouble(),
             getRecordDuration().toDouble()
@@ -197,20 +238,16 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
         }
 
         //3.合并
-        val mergeAudio = recordTool.getAudioFileName("merge")
+        val mergeAudio = recorder.getAudioFileName("merge")
         val mergeCommand = buildMergeCommand(leftAudio, rightAudio, output = mergeAudio)
         mergeCommand.toJson().logI("record")
         val mergeState = FFmpegKit.runCommand(mergeCommand)
-
         //4.删除临时的音频文件
         FileUtils.deleteFile(leftAudio)
         FileUtils.deleteFile(rightAudio)
-        FileUtils.deleteFile(recordTool.getSaveUrl())
         if (mergeState == OnFinish) {
-            recordTool.updateSaveFile(mergeAudio)
-            val time = mViewBinding.waveview.getDuration()
-            recordTool.setTime(time)
-            mViewModel.timeLiveData.postValue(time)
+            FileUtils.deleteFile(recorder.getSaveUrl())
+            recorder.updateSaveFile(mergeAudio)
             return true
         }
         return false
@@ -219,7 +256,7 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
 
     override fun onBackPressed() {
         super.onBackPressed()
-        recordTool.pause()
+        recorder.pause()
     }
 
     override fun initData() {
@@ -228,7 +265,7 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
 
     override fun onDestroy() {
         super.onDestroy()
-        recordTool.pause()
+        recorder.pause()
         audioPlayer.stopPlay()
     }
 
@@ -253,13 +290,13 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
     fun updateUIState(state: RecordState) {
         mViewBinding.ivRecordHistory.updateState(state)
         mViewBinding.ivRecordState.updateState(state)
-        val canPlay = state != RecordState.RECORDING && recordTool.hasRecord()
+        val canPlay = state != RecordState.RECORDING && recorder.hasRecord()
         if (canPlay) {
             mViewBinding.ivRecordPlay.imageTintList =
                 ColorStateList.valueOf(ContextCompat.getColor(this, R.color.black))
             //计算时间差值
             mViewModel.difDuration =
-                getRecordDuration() - Util.getAudioLength(recordTool.getSaveUrl())
+                getRecordDuration() - Util.getAudioLength(recorder.getSaveUrl())
         } else {
             mViewBinding.ivRecordPlay.imageTintList =
                 ColorStateList.valueOf(ContextCompat.getColor(this, me.shetj.base.R.color.blackHintText))
@@ -269,11 +306,13 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
         mViewBinding.startCut.isVisible = state == RecordState.PAUSED
         when (state) {
             RecordState.RECORDING -> {
+                mViewBinding.recordStateMsg.text = "暂停录制"
                 needToStart = true
                 mViewBinding.waveview.setEnableScroll(false)
             }
             RecordState.PAUSED -> {
                 mViewBinding.waveview.setEnableScroll(true)
+                mViewBinding.recordStateMsg.text = "继续录制"
             }
             RecordState.STOPPED -> {
 

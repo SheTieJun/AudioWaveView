@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.MediaRecorder
 import android.net.Uri
 import android.text.TextUtils
+import me.shetj.base.BaseKit.isDebug
 import me.shetj.base.tools.file.EnvironmentStorage
 import me.shetj.player.PlayerListener
 import me.shetj.recorder.core.BaseRecorder
@@ -46,23 +47,24 @@ class RecorderKit(
         initRecorder()
     }
 
-    private var startTime: Long = 0 //秒 s
     private var mRecorder: BaseRecorder? = null
     private var saveFile = ""
 
-    fun startOrPause() {
+    fun startOrPause(file: String = "") {
         if (mRecorder == null) {
             initRecorder()
         }
         when (mRecorder?.state) {
             RecordState.STOPPED -> {
-                if (TextUtils.isEmpty(saveFile)) {
+                if (TextUtils.isEmpty(file)) {
                     val mRecordFile =
                         EnvironmentStorage.getPath(
                             root = context!!.filesDir.absolutePath,
                             packagePath = "record"
                         ) + "/" + System.currentTimeMillis() + ".mp3"
                     this.saveFile = mRecordFile
+                } else {
+                    this.saveFile = file
                 }
                 mRecorder?.setOutputFile(saveFile, isContinue = true)
                 mRecorder?.start()
@@ -78,7 +80,7 @@ class RecorderKit(
         }
     }
 
-    fun getAudioFileName(name:String): String {
+    fun getAudioFileName(name: String): String {
         return EnvironmentStorage.getPath(
             root = context!!.filesDir.absolutePath,
             packagePath = "record"
@@ -86,9 +88,9 @@ class RecorderKit(
     }
 
 
-    fun updateSaveFile(file: String){
-        reset()
+    fun updateSaveFile(file: String) {
         saveFile = file
+        mRecorder?.updateDataEncode(saveFile, isContinue = true)
     }
 
     fun getSaveUrl() = saveFile
@@ -116,6 +118,10 @@ class RecorderKit(
 
     fun isPause(): Boolean {
         return mRecorder?.state == RecordState.PAUSED
+    }
+
+    fun canOverWriter(): Boolean {
+        return mRecorder?.state != RecordState.RECORDING && hasRecord
     }
 
     fun setBackgroundPlayerListener(listener: PlayerListener) {
@@ -151,17 +157,10 @@ class RecorderKit(
      * @param startTime 已经录制的时间
      */
     fun setTime(startTime: Long) {
-        this.startTime = startTime
-        setMaxTime((maxDuration - startTime))
+        mRecorder?.setCurDuration(startTime)
         callBack?.onRecording((startTime), 0)
     }
 
-    /**
-     * 设置最大录制时间
-     */
-    private fun setMaxTime(maxTime: Long) {
-        mRecorder?.setMaxTime(maxTime)
-    }
 
     /**
      * 录音异常
@@ -177,14 +176,8 @@ class RecorderKit(
      * 停止录音
      */
     fun complete() {
-        if (mRecorder?.isActive == true) {
-            mRecorder?.complete()
-        }else{
-            callBack?.onSuccess(false, saveFile, startTime)
-        }
+        mRecorder?.complete()
         hasRecord = false
-        startTime = 0
-        saveFile = ""
     }
 
     override fun needPermission() {
@@ -207,7 +200,7 @@ class RecorderKit(
     }
 
     override fun onRecording(time: Long, volume: Int) {
-        callBack?.onRecording(((startTime + time)), volume)
+        callBack?.onRecording(time, volume)
     }
 
     override fun onPause() {
@@ -236,7 +229,6 @@ class RecorderKit(
             mRecorder!!.setBackgroundMusic(context, url, null)
         }
     }
-
 
 
     fun getDuration(): Long? {

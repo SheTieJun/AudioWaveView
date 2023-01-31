@@ -14,7 +14,7 @@ import com.shetj.demo.record.model.Record
         RecType::class
     ],
     version = 1,
-    exportSchema = true
+    exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
 

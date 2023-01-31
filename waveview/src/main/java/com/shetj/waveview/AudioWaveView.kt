@@ -53,6 +53,7 @@ open class AudioWaveView @JvmOverloads constructor(
 
     protected var mLevel = 10  //声波分level个级别
     protected var mOneSecondSize = 25f  //一秒声音的样本个数
+    protected var mOneRectTime = 40f
 
     //每一秒25个
     protected val mSecondWidth: Float
@@ -235,8 +236,8 @@ open class AudioWaveView @JvmOverloads constructor(
         }
         //通过偏移量得到时间
         if (mContentLength == 0F) return
-        this.mCurrentPosition = (mDuration * abs(mOffsetX) / mContentLength).toLong()
-        mChangeListener?.onUpdateCurrentPosition(mCurrentPosition,mDuration)
+        this.mCurrentPosition = (mDuration * abs(mOffsetX) / mContentLength).toLong() / 10 * 10
+        mChangeListener?.onUpdateCurrentPosition(mCurrentPosition, mDuration)
     }
 
     init {
@@ -248,6 +249,9 @@ open class AudioWaveView @JvmOverloads constructor(
         topLineMargin = ta.getDimension(R.styleable.AudioWaveView_wv_top_line_margin, dip2px(30f).toFloat())
         bottomLineMargin = ta.getDimension(R.styleable.AudioWaveView_wv_bottom_line_margin, dip2px(30f).toFloat())
         mOneSecondSize = ta.getFloat(R.styleable.AudioWaveView_wv_one_second_rect_size, 25f)
+
+        mOneRectTime = 1000 / mOneSecondSize
+
         mLinePaint.color =
             ta.getColor(R.styleable.AudioWaveView_wv_top_bottom_line_color, Color.parseColor("#c8cad0"))
 
@@ -366,9 +370,9 @@ open class AudioWaveView @JvmOverloads constructor(
      * Scroll to end
      * 快速到底不
      */
-    open fun scrollToEnd(needAnim:Boolean = true) {
+    open fun scrollToEnd(needAnim: Boolean = true) {
         mAnima?.cancel()
-        if (needAnim){
+        if (needAnim) {
             mAnima = ObjectAnimator.ofFloat(mOffsetX, -mContentLength).also { an ->
                 an.duration = 50
                 an.interpolator = DecelerateInterpolator()
@@ -380,7 +384,7 @@ open class AudioWaveView @JvmOverloads constructor(
                 }
                 an.start()
             }
-        }else{
+        } else {
             mOffsetX = -mContentLength
             invalidate()
         }
@@ -390,9 +394,9 @@ open class AudioWaveView @JvmOverloads constructor(
      * Scroll to end
      * 快速到底不
      */
-    open fun scrollToStart(needAnim:Boolean = true) {
+    open fun scrollToStart(needAnim: Boolean = true) {
         mAnima?.cancel()
-        if (needAnim){
+        if (needAnim) {
             mAnima = ObjectAnimator.ofFloat(mOffsetX, 0f).also { an ->
                 an.duration = 50
                 an.interpolator = DecelerateInterpolator()
@@ -404,7 +408,7 @@ open class AudioWaveView @JvmOverloads constructor(
                 }
                 an.start()
             }
-        }else{
+        } else {
             mOffsetX = 0f
             invalidate()
         }
@@ -502,17 +506,19 @@ open class AudioWaveView @JvmOverloads constructor(
      * 开始覆盖模式
      * 删除中线以后的数据，触发剪切
      */
-    open suspend fun startOverwrite() {
+    open suspend fun startOverwrite(): Boolean {
         if (isEditModel()) {
             closeEditModel()
         }
-        val isCutOk = mChangeListener?.onCutAudio(mCurrentPosition, mDuration) ?: true
+        val isCutOk = mChangeListener?.onCutAudio(mCurrentPosition, mDuration) ?: false
         if (isCutOk) {
             deleteFrames(mCurrentPosition, mDuration)
             mCutStartTime = mCutEndTime
             invalidate()
             scrollToEnd(false)
+            mChangeListener?.onCutFinish()
         }
+        return isCutOk
     }
 
     /**
@@ -553,7 +559,7 @@ open class AudioWaveView @JvmOverloads constructor(
      * @return 当前时间的在FrameArray的位置
      */
     open fun getIndexByTime(time: Long): Int {
-        return (time * mOneSecondSize / 1000 + 0.5).toInt()
+        return (time / 1000f * mOneSecondSize).toInt()
     }
 
     /**
@@ -607,15 +613,17 @@ open class AudioWaveView @JvmOverloads constructor(
      * Cut select
      * 剪切掉选中部分
      */
-    open suspend fun cutSelect() {
-        if (!mIsEditModel) return
-        val isCutOk = mChangeListener?.onCutAudio(mCutStartTime, mCutEndTime) ?: true
+    open suspend fun cutSelect(): Boolean {
+        if (!mIsEditModel) return false
+        val isCutOk = mChangeListener?.onCutAudio(mCutStartTime, mCutEndTime) ?: false
         if (isCutOk) {
             deleteFrames(mCutStartTime, mCutEndTime)
             mCutStartTime = mCutEndTime
             checkOffsetX()
             closeEditModel()
+            mChangeListener?.onCutFinish()
         }
+        return isCutOk
     }
 
 
@@ -626,10 +634,11 @@ open class AudioWaveView @JvmOverloads constructor(
      * @param endTime 结束时间
      */
     protected open fun deleteFrames(startTime: Long, endTime: Long) {
-        mDuration -= (endTime - startTime)
-        val size = mDuration * mOneSecondSize / 1000
+        val cutTime = endTime - startTime
+        mDuration -= cutTime
+        val size = ((mDuration / 1000f) * mOneSecondSize).toInt()
         val delSize = mFrameArray.getSize() - size
-        deleteFrames(startTime, delSize.toInt())
+        deleteFrames(startTime, delSize)
     }
 
     private fun deleteFrames(startTime: Long, delSize: Int) {
@@ -697,6 +706,7 @@ open class AudioWaveView @JvmOverloads constructor(
                     MotionEvent.ACTION_UP -> {
                         mIsTouchLeft = false
                         mIsTouchRight = false
+
                         invalidate()
                     }
                 }
@@ -708,8 +718,8 @@ open class AudioWaveView @JvmOverloads constructor(
     }
 
     protected open fun updateSelectTimePosition() {
-        this.mCutStartTime = (mDuration * abs(mOffsetCutStartX) / mContentLength).toLong()
-        this.mCutEndTime = (mDuration * abs(mOffsetCutEndX) / mContentLength).toLong()
+        this.mCutStartTime = (mDuration * abs(mOffsetCutStartX) / mContentLength).toLong() / 10 * 10
+        this.mCutEndTime = (mDuration * abs(mOffsetCutEndX) / mContentLength).toLong() / 10 * 10
         mChangeListener?.onUpdateCutPosition(mCutStartTime, mCutEndTime)
     }
 
@@ -761,23 +771,32 @@ open class AudioWaveView @JvmOverloads constructor(
                     }
                 }
             }
-            // 画声音播放矩形
-            mFrameArray.get().forEachIndexed { index, value ->
 
-                mRectStart =
-                    getStartX() + index * mRectWidth * mScaleFactor + mRectSpace * mScaleFactor * index
-                mRectEnd =
-                    getStartX() + (index + 1) * mRectWidth * mScaleFactor + mRectSpace * mScaleFactor * index
-                if (mRectEnd <= width + 20 || mRectStart >= -10) {
-                    val halfRectHeight = min(value / mLevel.toFloat(), 1f) / 2 * halfHeight //矩形的半高
-                    mRectVoiceLine.left = mRectStart
-                    mRectVoiceLine.top = halfHeight - halfRectHeight
-                    mRectVoiceLine.right = mRectEnd
-                    mRectVoiceLine.bottom = halfHeight + halfRectHeight
-                    if (mRectEnd < halfWidth) {
-                        drawRoundRect(mRectVoiceLine, 6f, 6f, mRectLeftPaint)
-                    } else {
-                        drawRoundRect(mRectVoiceLine, 6f, 6f, mRectRightPaint)
+            if (mFrameArray.get().isNotEmpty()) {
+                val endIndex =
+                    ((width + 20 - getStartX()) / (mRectWidth * mScaleFactor + mRectSpace * mScaleFactor) + 1).toInt()
+                        .coerceAtMost(mFrameArray.getSize()-1)
+                val firstIndex =
+                    ((-10 - getStartX()) / (mRectWidth * mScaleFactor + mRectSpace * mScaleFactor) - 1).toInt()
+                        .coerceAtLeast(0)
+
+                for (index in firstIndex..endIndex) {
+                    mRectStart =
+                        getStartX() + index * mRectWidth * mScaleFactor + mRectSpace * mScaleFactor * index
+                    mRectEnd =
+                        getStartX() + (index + 1) * mRectWidth * mScaleFactor + mRectSpace * mScaleFactor * index
+                    if (mRectEnd <= width + 20 || mRectStart >= -10) {
+                        val halfRectHeight =
+                            min(mFrameArray.get()[index] / mLevel.toFloat(), 1f) / 2 * halfHeight //矩形的半高
+                        mRectVoiceLine.left = mRectStart
+                        mRectVoiceLine.top = halfHeight - halfRectHeight
+                        mRectVoiceLine.right = mRectEnd
+                        mRectVoiceLine.bottom = halfHeight + halfRectHeight
+                        if (mRectEnd < halfWidth) {
+                            drawRoundRect(mRectVoiceLine, 6f, 6f, mRectLeftPaint)
+                        } else {
+                            drawRoundRect(mRectVoiceLine, 6f, 6f, mRectRightPaint)
+                        }
                     }
                 }
             }
@@ -927,7 +946,7 @@ open class AudioWaveView @JvmOverloads constructor(
     fun setListener(callBack: OnChangeListener?) {
         this.mChangeListener = callBack
         mChangeListener?.let {
-            it.onUpdateCurrentPosition(mCurrentPosition,mDuration)
+            it.onUpdateCurrentPosition(mCurrentPosition, mDuration)
             it.onUpdateScale(mScaleFactor)
             if (isEditModel()) {
                 it.onUpdateCutPosition(mCutStartTime, mCutEndTime)
@@ -943,7 +962,7 @@ open class AudioWaveView @JvmOverloads constructor(
          * @param position 中线的时间
          * @param duration 总时长
          */
-        fun onUpdateCurrentPosition(position: Long,duration:Long) {
+        fun onUpdateCurrentPosition(position: Long, duration: Long) {
 
         }
 
@@ -968,6 +987,13 @@ open class AudioWaveView @JvmOverloads constructor(
             return true
         }
 
+        /**
+         * On cut finish
+         * 剪切完成
+         */
+        fun onCutFinish() {
+
+        }
 
         /**
          * On update scale
@@ -978,7 +1004,7 @@ open class AudioWaveView @JvmOverloads constructor(
 
         }
 
-        fun onEditModelChange(isEditModel:Boolean){
+        fun onEditModelChange(isEditModel: Boolean) {
 
         }
     }

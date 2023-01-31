@@ -28,13 +28,13 @@ class RecordHistoryActivity :
         setTitle("录音")
         with(mViewBinding) {
             mAdapter.adapterAnimation = ScaleInAnimation()
-            mAdapter.setOnItemLongClickListener { _, view, position ->
-                if (!mAdapter.isCheckStyle()) {
-                    mAdapter.setCanCheck(true)
-                }
-                mAdapter.invertCheck(position)
-                return@setOnItemLongClickListener true
-            }
+//            mAdapter.setOnItemLongClickListener { _, view, position ->
+//                if (!mAdapter.isCheckStyle()) {
+//                    mAdapter.setCanCheck(true)
+//                }
+//                mAdapter.invertCheck(position)
+//                return@setOnItemLongClickListener true
+//            }
             mAdapter.setOnItemClickListener { _, view, position ->
                 if (mAdapter.isCheckStyle()) {
                     mAdapter.invertCheck(position)

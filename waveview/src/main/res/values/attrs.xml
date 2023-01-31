@@ -6,7 +6,7 @@
         <attr name="wv_top_line_margin" format="dimension" />
         <!--        底部的线到底部的距离-->
         <attr name="wv_bottom_line_margin" format="dimension" />
-        <!--        疫苗存在的矩形数量-->
+        <!--        一秒存在的矩形数量-->
         <attr name="wv_one_second_rect_size" format="float" />
         <!--        顶部线和底部线的颜色-->
         <attr name="wv_top_bottom_line_color" format="color" />
