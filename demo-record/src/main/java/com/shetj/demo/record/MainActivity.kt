@@ -246,6 +246,7 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
         FileUtils.deleteFile(leftAudio)
         FileUtils.deleteFile(rightAudio)
         if (mergeState == OnFinish) {
+            //如果要实现重录取消等功能，就不可以删除这些文件
             FileUtils.deleteFile(recorder.getSaveUrl())
             recorder.updateSaveFile(mergeAudio)
             return true
