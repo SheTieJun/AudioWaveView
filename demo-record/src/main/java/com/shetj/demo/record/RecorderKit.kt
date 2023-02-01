@@ -158,7 +158,6 @@ class RecorderKit(
      */
     fun setTime(startTime: Long) {
         mRecorder?.setCurDuration(startTime)
-        callBack?.onRecording((startTime), 0)
     }
 
 

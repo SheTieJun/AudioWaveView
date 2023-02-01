@@ -10,6 +10,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.util.Log
 import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
@@ -22,12 +23,6 @@ import android.widget.Scroller
 import kotlin.math.abs
 import kotlin.math.min
 
-
-/**
- * Audio wave view
- * 音频播放的view
- * 1. 支持放大缩小
- */
 open class AudioWaveView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
@@ -159,11 +154,11 @@ open class AudioWaveView @JvmOverloads constructor(
         return mOffsetX * mScaleFactor + mHalfEmptyLength
     }
 
-    protected open fun getLeftStartX(): Float {
+    protected open fun getLeftLineStartX(): Float {
         return getStartX() + mOffsetCutStartX * mScaleFactor
     }
 
-    protected open fun getRightStartX(): Float {
+    protected open fun getRightLineStartX(): Float {
         return getStartX() + mOffsetCutEndX * mScaleFactor
     }
     //endregion
@@ -659,8 +654,8 @@ open class AudioWaveView @JvmOverloads constructor(
                     MotionEvent.ACTION_DOWN -> {
                         mLastX = event.x
                         val x = event.x.toInt()
-                        mIsTouchLeft = abs(x - getLeftStartX()) < touchRec
-                        mIsTouchRight = abs(x - getRightStartX()) < touchRec
+                        mIsTouchLeft = abs(x - getLeftLineStartX()) < touchRec
+                        mIsTouchRight = abs(x - getRightLineStartX()) < touchRec
                     }
                     MotionEvent.ACTION_MOVE -> {
                         val moveX = (event.x - mLastX) / (mScaleFactor * 2)
@@ -743,14 +738,12 @@ open class AudioWaveView @JvmOverloads constructor(
             val mBottom = mFontMetrics.bottom
             val baseLineY = topLineMargin / 2 - mTop / 2 - mBottom / 2 //基线中间点的y轴计算公式
             // 先不管至少执行3次，后面可以总结优化下
-            repeat(i + 3 + time) {
-
-                mRectTimeStart = getStartX() + it * mSecondWidth * mScaleFactor
-                mRectTimeLine.left = mRectTimeStart
+            repeat(i + time) {
+                mRectTimeStart = getStartX() + it * (mSecondWidth) * mScaleFactor
+                mRectTimeLine.left = mRectTimeStart -1
                 mRectTimeLine.top = topLineMargin - 10f
-                mRectTimeLine.right = mRectTimeStart + 2f
+                mRectTimeLine.right = mRectTimeStart + 1f
                 mRectTimeLine.bottom = topLineMargin
-
                 if (mRectTimeStart >= 0 && mRectTimeStart <= width) {
                     //只有屏幕之内的刻度才画出来
                     drawRoundRect(mRectTimeLine, 1f, 1f, mLinePaint)
@@ -827,53 +820,53 @@ open class AudioWaveView @JvmOverloads constructor(
 
                 // 画矩形
                 drawRect(
-                    getLeftStartX(),
+                    getLeftLineStartX(),
                     topLineMargin,
-                    getRightStartX(),
+                    getRightLineStartX(),
                     height - bottomLineMargin,
                     mSelectedBGPaint
                 )
 
                 // 画开始左线
                 drawLine(
-                    getLeftStartX(),
+                    getLeftLineStartX(),
                     topLineMargin,
-                    getLeftStartX(),
+                    getLeftLineStartX(),
                     height - bottomLineMargin,
                     mCutMarkerPoint
                 )
                 if (mIsTouchLeft) {
                     //左边的文字进度
-                    drawText(getStartTs(), getLeftStartX(), baseLineY, mTextCutTimePaint)
+                    drawText(getStartTs(), getLeftLineStartX(), baseLineY, mTextCutTimePaint)
                 }
 
 
                 // 画结束右线
                 drawLine(
-                    getRightStartX(),
+                    getRightLineStartX(),
                     topLineMargin,
-                    getRightStartX(),
+                    getRightLineStartX(),
                     height - bottomLineMargin,
                     mCutMarkerPoint
                 )
                 if (mIsTouchRight) {
                     //右边文字的进度
-                    drawText(getEndTs(), getRightStartX(), baseLineY, mTextCutTimePaint)
+                    drawText(getEndTs(), getRightLineStartX(), baseLineY, mTextCutTimePaint)
                 }
 
 
 
                 mIconRect.set(
-                    (getLeftStartX() - iconSize / 2).toInt(),
+                    (getLeftLineStartX() - iconSize / 2).toInt(),
                     (height - bottomLineMargin - iconSize / 2).toInt(),
-                    (getLeftStartX() + iconSize / 2).toInt(),
+                    (getLeftLineStartX() + iconSize / 2).toInt(),
                     (height - bottomLineMargin + iconSize / 2).toInt()
                 )
                 bitmap?.let { drawBitmap(it, null, mIconRect, mIconPaint) }
                 mIconRect.set(
-                    (getRightStartX() - iconSize / 2).toInt(),
+                    (getRightLineStartX() - iconSize / 2).toInt(),
                     (height - bottomLineMargin - iconSize / 2).toInt(),
-                    (getRightStartX() + iconSize / 2).toInt(),
+                    (getRightLineStartX() + iconSize / 2).toInt(),
                     (height - bottomLineMargin + iconSize / 2).toInt()
                 )
                 bitmap?.let { drawBitmap(it, null, mIconRect, mIconPaint) }
