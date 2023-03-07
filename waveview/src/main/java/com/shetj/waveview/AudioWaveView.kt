@@ -348,13 +348,13 @@ open class AudioWaveView @JvmOverloads constructor(
 
     fun setWaveWidth(width:Float){
         mRectWidth = width
-        mContentLength
+        checkOffsetX()
         postInvalidate()
     }
 
     fun setWaveSpace(spaceWidth:Float){
         mRectSpace = spaceWidth
-        mContentLength
+        checkOffsetX()
         invalidate()
     }
 
