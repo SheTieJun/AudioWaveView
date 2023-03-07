@@ -7,10 +7,11 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.PorterDuff.Mode.SRC_ATOP
+import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
-import android.util.Log
 import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
@@ -37,6 +38,7 @@ open class AudioWaveView @JvmOverloads constructor(
     protected var antoMoveLimit = dip2px(30f) //触发自动滚动的
     protected var topLineMargin = dip2px(30f).toFloat() //顶部的线距离 顶部的高度
     protected var bottomLineMargin = dip2px(30f).toFloat() //底部的线距离 底部的高度
+    protected var mRectCornerRadius = dip2px(2f).toFloat()
 
     protected var mChangeListener: OnChangeListener? = null
     protected var mDuration: Long = 0 //总时间
@@ -92,6 +94,7 @@ open class AudioWaveView @JvmOverloads constructor(
      */
     protected val mRectLeftPaint = Paint().apply {
         color = Color.parseColor("#93b3ea")
+        xfermode =  PorterDuffXfermode(SRC_ATOP)
     }
 
     protected val mIconPaint = Paint()
@@ -278,6 +281,7 @@ open class AudioWaveView @JvmOverloads constructor(
         mCanScroll = ta.getBoolean(R.styleable.AudioWaveView_wv_can_scroll, true)
         mScaleFactor = ta.getFloat(R.styleable.AudioWaveView_wv_rect_scale, 1.0f).coerceAtLeast(mMinScale)
             .coerceAtMost(mMaxScale)
+        mRectCornerRadius = ta.getDimension(R.styleable.AudioWaveView_wv_rect_corner_radius,6f)
         ta.recycle()
     }
 
@@ -327,6 +331,47 @@ open class AudioWaveView @JvmOverloads constructor(
         return result
     }
 
+    fun setCenterLineColor(color: Int){
+        mCenterLinePaint.color = color
+        postInvalidate()
+    }
+
+    fun setLeftPaintColor(color: Int){
+        mRectLeftPaint.color = color
+        postInvalidate()
+    }
+
+    fun setRightPaintColor(color: Int){
+        mRectRightPaint.color = color
+        postInvalidate()
+    }
+
+    fun setWaveWidth(width:Float){
+        mRectWidth = width
+        mContentLength
+        postInvalidate()
+    }
+
+    fun setWaveSpace(spaceWidth:Float){
+        mRectSpace = spaceWidth
+        mContentLength
+        invalidate()
+    }
+
+    fun setWaveCornerRadius(radius:Float){
+        mRectCornerRadius = radius
+        postInvalidate()
+    }
+
+    fun setWaveScale(scale: Float){
+        mScaleFactor = scale.coerceAtLeast(mMinScale).coerceAtMost(mMaxScale)
+        postInvalidate()
+    }
+
+    fun setTimeSize(sizeDp:Float){
+        mTextTimePaint.textSize  = dip2px(sizeDp).toFloat()
+        postInvalidate()
+    }
 
     /**
      * @param enable 是否可以通过手势进行滚动
@@ -610,7 +655,7 @@ open class AudioWaveView @JvmOverloads constructor(
      */
     open suspend fun cutSelect(): Boolean {
         if (!mIsEditModel) return false
-        val isCutOk = mChangeListener?.onCutAudio(mCutStartTime, mCutEndTime) ?: false
+        val isCutOk = mChangeListener?.onCutAudio(mCutStartTime, mCutEndTime) ?: true
         if (isCutOk) {
             deleteFrames(mCutStartTime, mCutEndTime)
             mCutStartTime = mCutEndTime
@@ -727,6 +772,41 @@ open class AudioWaveView @JvmOverloads constructor(
         val halfHeight = (height / 2).toFloat()
         canvas?.apply {
 
+            val sc = canvas.saveLayer(0f, 0f, width.toFloat(), height.toFloat(), null)
+
+            if (mFrameArray.get().isNotEmpty()) {
+                val endIndex =
+                    ((width + 20 - getStartX()) / (mRectWidth * mScaleFactor + mRectSpace * mScaleFactor) + 1).toInt()
+                        .coerceAtMost(mFrameArray.getSize()-1)
+                val firstIndex =
+                    ((-10 - getStartX()) / (mRectWidth * mScaleFactor + mRectSpace * mScaleFactor) - 1).toInt()
+                        .coerceAtLeast(0)
+
+                for (index in firstIndex..endIndex) {
+                    mRectStart =
+                        getStartX() + index * mRectWidth * mScaleFactor + mRectSpace * mScaleFactor * index
+                    mRectEnd =
+                        getStartX() + (index + 1) * mRectWidth * mScaleFactor + mRectSpace * mScaleFactor * index
+                    if (mRectEnd <= width + 20 || mRectStart >= -10) {
+                        val halfRectHeight =
+                            min(mFrameArray.get()[index] / mLevel.toFloat(), 1f) / 2 * halfHeight //矩形的半高
+                        mRectVoiceLine.left = mRectStart
+                        mRectVoiceLine.top = halfHeight - halfRectHeight
+                        mRectVoiceLine.right = mRectEnd
+                        mRectVoiceLine.bottom = halfHeight + halfRectHeight
+                        drawRoundRect(mRectVoiceLine, mRectCornerRadius, mRectCornerRadius, mRectRightPaint)
+                    }
+                }
+            }
+            //左边着色
+            canvas.drawRect(
+                0f,
+                0f,
+                halfWidth,
+                height.toFloat(),
+                mRectLeftPaint
+            )
+            canvas.restoreToCount(sc)
 
             //先判断一共需要画的刻度是多少
             val time = (mContentLength / mSecondWidth).toInt()
@@ -760,35 +840,6 @@ open class AudioWaveView @JvmOverloads constructor(
                     } else {
                         if (it % 5 == 0) {
                             drawText(it.covertToTime(), mRectTimeStart, baseLineY, mTextTimePaint)
-                        }
-                    }
-                }
-            }
-
-            if (mFrameArray.get().isNotEmpty()) {
-                val endIndex =
-                    ((width + 20 - getStartX()) / (mRectWidth * mScaleFactor + mRectSpace * mScaleFactor) + 1).toInt()
-                        .coerceAtMost(mFrameArray.getSize()-1)
-                val firstIndex =
-                    ((-10 - getStartX()) / (mRectWidth * mScaleFactor + mRectSpace * mScaleFactor) - 1).toInt()
-                        .coerceAtLeast(0)
-
-                for (index in firstIndex..endIndex) {
-                    mRectStart =
-                        getStartX() + index * mRectWidth * mScaleFactor + mRectSpace * mScaleFactor * index
-                    mRectEnd =
-                        getStartX() + (index + 1) * mRectWidth * mScaleFactor + mRectSpace * mScaleFactor * index
-                    if (mRectEnd <= width + 20 || mRectStart >= -10) {
-                        val halfRectHeight =
-                            min(mFrameArray.get()[index] / mLevel.toFloat(), 1f) / 2 * halfHeight //矩形的半高
-                        mRectVoiceLine.left = mRectStart
-                        mRectVoiceLine.top = halfHeight - halfRectHeight
-                        mRectVoiceLine.right = mRectEnd
-                        mRectVoiceLine.bottom = halfHeight + halfRectHeight
-                        if (mRectEnd < halfWidth) {
-                            drawRoundRect(mRectVoiceLine, 6f, 6f, mRectLeftPaint)
-                        } else {
-                            drawRoundRect(mRectVoiceLine, 6f, 6f, mRectRightPaint)
                         }
                     }
                 }
