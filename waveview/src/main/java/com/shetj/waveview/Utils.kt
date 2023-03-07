@@ -93,7 +93,6 @@ internal fun Drawable.toBitmap(
 }
 
 
-
 private operator fun Rect.component1(): Int {
     return left
 }
@@ -101,8 +100,9 @@ private operator fun Rect.component1(): Int {
 private operator fun Rect.component2(): Int {
     return top
 }
+
 private operator fun Rect.component3(): Int {
-     return right
+    return right
 }
 
 private operator fun Rect.component4(): Int {

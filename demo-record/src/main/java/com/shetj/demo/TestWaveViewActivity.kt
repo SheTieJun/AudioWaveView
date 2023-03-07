@@ -1,9 +1,11 @@
 package com.shetj.demo
 
+import android.graphics.Color
 import android.os.Bundle
 import android.widget.RadioButton
 import android.widget.SeekBar
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.shetj.demo.record.R
 import com.shetj.demo.record.databinding.ActivityTestWaveViewBinding
@@ -20,9 +22,12 @@ class TestWaveViewActivity : AbBindingActivity<ActivityTestWaveViewBinding>() {
     private var duration = 0L
 
     override fun initView() {
+
+        mViewBinding.audioWaveView.setCutSelectPaintColor(Color.parseColor("#4cFF0000"))
+
         mViewBinding.waveWidth.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                mViewBinding.audioWaveView.setWaveWidth(progress / 100F *(20f.dp2px))
+                mViewBinding.audioWaveView.setWaveWidth(progress / 100F *(40f.dp2px))
 
             }
 
@@ -34,7 +39,7 @@ class TestWaveViewActivity : AbBindingActivity<ActivityTestWaveViewBinding>() {
         mViewBinding.waveCornerRadius.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                mViewBinding.audioWaveView.setWaveCornerRadius(progress / 100F *(20f.dp2px))
+                mViewBinding.audioWaveView.setWaveCornerRadius(progress / 100F *(40f.dp2px))
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -44,7 +49,7 @@ class TestWaveViewActivity : AbBindingActivity<ActivityTestWaveViewBinding>() {
 
         mViewBinding.waveSpace.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                mViewBinding.audioWaveView.setWaveSpace( progress / 100F *(10f.dp2px))
+                mViewBinding.audioWaveView.setWaveSpace( progress / 100F *(20f.dp2px))
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}

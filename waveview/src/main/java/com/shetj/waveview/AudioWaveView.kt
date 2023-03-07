@@ -12,6 +12,7 @@ import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.util.Log
 import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
@@ -343,6 +344,21 @@ open class AudioWaveView @JvmOverloads constructor(
 
     fun setRightPaintColor(color: Int){
         mRectRightPaint.color = color
+        postInvalidate()
+    }
+
+    fun setCutSelectPaintColor(color: Int){
+        val alpha = Color.alpha(color)
+        if (alpha > 0.3*255){
+            Log.e(TAG,"setCutSelectPaintColor fail `alpha == $alpha` is not allow, preferably less than ${Integer.toHexString((0.3*255).toInt())}")
+            return
+        }
+        mSelectedBGPaint.color = color
+        postInvalidate()
+    }
+
+    fun setCutMarkerPointPaintColor(color: Int){
+        mCutMarkerPoint.color = color
         postInvalidate()
     }
 
@@ -771,9 +787,7 @@ open class AudioWaveView @JvmOverloads constructor(
         val halfWidth = (width / 2).toFloat()
         val halfHeight = (height / 2).toFloat()
         canvas?.apply {
-
-            val sc = canvas.saveLayer(0f, 0f, width.toFloat(), height.toFloat(), null)
-
+            canvas.saveLayer(0f, 0f, width.toFloat(), height.toFloat(), null)
             if (mFrameArray.get().isNotEmpty()) {
                 val endIndex =
                     ((width + 20 - getStartX()) / (mRectWidth * mScaleFactor + mRectSpace * mScaleFactor) + 1).toInt()
@@ -806,12 +820,12 @@ open class AudioWaveView @JvmOverloads constructor(
                 height.toFloat(),
                 mRectLeftPaint
             )
-            canvas.restoreToCount(sc)
 
             //先判断一共需要画的刻度是多少
             val time = (mContentLength / mSecondWidth).toInt()
             // 可能没有内容，我们也要画为了美观
-            val i = (width / (mSecondWidth * mScaleFactor)).toInt()
+            val realSecondWidth = (mSecondWidth) * mScaleFactor
+            val i = (width / realSecondWidth).toInt()
 
             val mFontMetrics = mTextTimePaint.fontMetrics
             val mTop = mFontMetrics.top
@@ -819,7 +833,7 @@ open class AudioWaveView @JvmOverloads constructor(
             val baseLineY = topLineMargin / 2 - mTop / 2 - mBottom / 2 //基线中间点的y轴计算公式
             // 先不管至少执行3次，后面可以总结优化下
             repeat(i + time) {
-                mRectTimeStart = getStartX() + it * (mSecondWidth) * mScaleFactor
+                mRectTimeStart = getStartX() + it * realSecondWidth
                 mRectTimeLine.left = mRectTimeStart -1
                 mRectTimeLine.top = topLineMargin - 10f
                 mRectTimeLine.right = mRectTimeStart + 1f
@@ -827,13 +841,13 @@ open class AudioWaveView @JvmOverloads constructor(
                 if (mRectTimeStart >= 0 && mRectTimeStart <= width) {
                     //只有屏幕之内的刻度才画出来
                     drawRoundRect(mRectTimeLine, 1f, 1f, mLinePaint)
-                    if (mScaleFactor > 0.5) {
+                    if (realSecondWidth > 90) {
                         drawText(it.covertToTime(), mRectTimeStart, baseLineY, mTextTimePaint)
-                    } else if (mScaleFactor > 0.3) {
+                    } else if (realSecondWidth > 60) {
                         if (it % 2 == 0) {
                             drawText(it.covertToTime(), mRectTimeStart, baseLineY, mTextTimePaint)
                         }
-                    } else if (mScaleFactor > 0.15) {
+                    } else if (realSecondWidth > 30) {
                         if (it % 3 == 0) {
                             drawText(it.covertToTime(), mRectTimeStart, baseLineY, mTextTimePaint)
                         }
@@ -861,14 +875,11 @@ open class AudioWaveView @JvmOverloads constructor(
                 height - bottomLineMargin,
                 mLinePaint
             )
-
             // 画中线
             drawLine(halfWidth, 2f, halfWidth, height - bottomLineMargin, mCenterLinePaint)
             drawCircle(halfWidth, (cirWidth / 2).toFloat() + 8f, cirWidth.toFloat(), mCenterLinePaint)
-
-
+            canvas.restore()
             if (mIsEditModel) {
-
                 // 画矩形
                 drawRect(
                     getLeftLineStartX(),
@@ -877,7 +888,6 @@ open class AudioWaveView @JvmOverloads constructor(
                     height - bottomLineMargin,
                     mSelectedBGPaint
                 )
-
                 // 画开始左线
                 drawLine(
                     getLeftLineStartX(),
@@ -890,8 +900,6 @@ open class AudioWaveView @JvmOverloads constructor(
                     //左边的文字进度
                     drawText(getStartTs(), getLeftLineStartX(), baseLineY, mTextCutTimePaint)
                 }
-
-
                 // 画结束右线
                 drawLine(
                     getRightLineStartX(),
@@ -904,9 +912,6 @@ open class AudioWaveView @JvmOverloads constructor(
                     //右边文字的进度
                     drawText(getEndTs(), getRightLineStartX(), baseLineY, mTextCutTimePaint)
                 }
-
-
-
                 mIconRect.set(
                     (getLeftLineStartX() - iconSize / 2).toInt(),
                     (height - bottomLineMargin - iconSize / 2).toInt(),
@@ -922,8 +927,6 @@ open class AudioWaveView @JvmOverloads constructor(
                 )
                 bitmap?.let { drawBitmap(it, null, mIconRect, mIconPaint) }
             }
-
-
         }
     }
 

@@ -4,10 +4,9 @@
 
 
     <item android:id="@+id/waveview"
-        android:icon="@mipmap/icon_voice_logo"
         app:showAsAction="always"
         android:iconTint="@color/white"
-        android:title="GitHub" />
+        android:title="Test" />
 
 
     <item android:id="@+id/github"
