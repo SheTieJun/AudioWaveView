@@ -1,9 +1,14 @@
 package com.shetj.demo.record
 
 import android.Manifest
+import android.content.Intent
 import android.content.res.ColorStateList
+import android.net.Uri
+import android.view.Menu
+import android.view.MenuItem
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import com.shetj.demo.TestWaveViewActivity
 import com.shetj.demo.record.databinding.ActivityMainBinding
 import com.shetj.demo.record.utils.AudioPlayer
 import com.shetj.demo.record.utils.PlaySate
@@ -206,6 +211,26 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
         }
 
         initPlayAudio()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_github_view, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId){
+            R.id.github ->{
+                val url = "https://github.com/SheTieJun/AudioWaveView"
+                val i = Intent(Intent.ACTION_VIEW)
+                i.data = Uri.parse(url)
+                startActivity(i)
+            }
+            R.id.waveview ->{
+                start<TestWaveViewActivity>()
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     private suspend fun cutAudio(startTime: Long, endTime: Long): Boolean {

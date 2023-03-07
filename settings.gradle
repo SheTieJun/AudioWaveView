@@ -14,6 +14,5 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "AudioWaveView"
-include ':app'
 include ':waveview'
 include ':demo-record'

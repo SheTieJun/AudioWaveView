@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.shetj.demo.TestWaveViewActivity">
+
+    <com.shetj.waveview.AudioWaveView
+        android:id="@+id/audioWaveView"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:wv_bottom_line_margin="20dp"
+        app:wv_can_scroll="true"
+        app:wv_center_line_width="2dp"
+        app:wv_cut_icon="@mipmap/icon_test_touch"
+        app:wv_cut_icon_size="25dp"
+        app:wv_cut_line_width="1dp"
+        app:wv_cut_time_text_size="12sp"
+        app:wv_one_second_rect_size="25"
+        app:wv_rect_corner_radius="5dp"
+        app:wv_rect_level="10"
+        app:wv_time_progress_text_color="@color/black"
+        app:wv_time_progress_text_size="12sp" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/audioWaveView">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintTop_toBottomOf="@id/audioWaveView">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    app:layout_constraintTop_toBottomOf="@id/audioWaveView">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/start_add"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="5dp"
+                        android:text="添加frame" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/clean"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="5dp"
+                        android:text="清空frame" />
+
+                </com.google.android.material.chip.ChipGroup>
+
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:text="矩形角度(wv_rect_corner_radius)" />
+
+            <SeekBar
+                android:id="@+id/waveCornerRadius"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:max="100"
+                android:progress="6" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:text="矩形宽度(wv_rect_width)" />
+
+            <SeekBar
+                android:id="@+id/waveWidth"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:max="100"
+                android:min="1"
+                android:progress="1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:text="矩形间距(wv_rect_space)" />
+
+            <SeekBar
+                android:id="@+id/waveSpace"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:max="100"
+                android:progress="50" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:text="时间字体大小(wv_cut_time_text_size)" />
+
+            <SeekBar
+                android:id="@+id/waveTimeSize"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:max="50"
+                android:progress="14" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:text="缩放大小（wv_rect_scale）" />
+
+            <SeekBar
+                android:id="@+id/waveScale"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:max="14"
+                android:progress="10" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="中线颜色" />
+
+                    <RadioGroup
+                        android:id="@+id/centerLineColorRadioGroup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center">
+
+                        <RadioButton
+                            android:id="@+id/top"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="black"
+                            android:textSize="12dp" />
+
+                        <RadioButton
+                            android:id="@+id/center"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:text="purple"
+                            android:textSize="12dp" />
+
+                        <RadioButton
+                            android:id="@+id/bottom"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="teal"
+                            android:textSize="12dp" />
+
+                    </RadioGroup>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="左边矩形颜色" />
+
+                    <RadioGroup
+                        android:id="@+id/waveLeftColorRadioGroup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center">
+
+                        <RadioButton
+                            android:id="@+id/pink"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="PINK"
+                            android:textSize="12dp" />
+
+                        <RadioButton
+                            android:id="@+id/yellow"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="YELLOW"
+                            android:textSize="12dp" />
+
+                        <RadioButton
+                            android:id="@+id/white"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:text="BLACK"
+                            android:textSize="12dp" />
+
+                    </RadioGroup>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="右边矩形颜色" />
+
+                    <RadioGroup
+                        android:id="@+id/waveRightColorRadioGroup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center">
+
+                        <RadioButton
+                            android:id="@+id/red"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="RED"
+                            android:textSize="12dp" />
+
+                        <RadioButton
+                            android:id="@+id/blue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true"
+                            android:text="BLUE"
+                            android:textSize="12dp" />
+
+                        <RadioButton
+                            android:id="@+id/green"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="GREEN"
+                            android:textSize="12dp" />
+
+                    </RadioGroup>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <com.google.android.material.chip.ChipGroup
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/open_edit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="开启编辑" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/close_edit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="关闭编辑" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/cut_edit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="剪切选中" />
+
+            </com.google.android.material.chip.ChipGroup>
+
+            <com.google.android.material.chip.ChipGroup
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/play"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="播放动画" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/pause"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="暂停" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/end"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="滚动尾部" />
+            </com.google.android.material.chip.ChipGroup>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

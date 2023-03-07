@@ -14,9 +14,9 @@
 > 
 > 也可以自行继承实现
 
-| 正常模式                  | 编辑模式                  | DEMO                    |
-|-----------------------|-----------------------|-------------------------|
-| ![](/image/正常模式.webp) | ![](/image/编辑模式.webp) | ![](/image/demo剪切.webp) |
+| 正常模式                     | DEMO                    |
+|--------------------------|-------------------------|
+| ![](/image/demo.webp)    | ![](/image/demo剪切.webp) |
 
 ```xml
 <com.shetj.waveview.AudioWaveView
@@ -58,6 +58,8 @@
     <attr name="wv_rect_level" format="integer" />
     <!--    矩形的宽度-->
     <attr name="wv_rect_width" format="dimension" />
+    <!--    矩形的圆角-->
+    <attr name="wv_rect_corner_radius" format="dimension" />
     <!--    矩形的间距-->
     <attr name="wv_rect_space" format="dimension" />
     <!--    矩形中线右边的颜色-->
