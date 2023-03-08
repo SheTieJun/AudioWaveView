@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.widget.RadioButton
 import android.widget.SeekBar
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.shetj.demo.record.R
 import com.shetj.demo.record.databinding.ActivityTestWaveViewBinding
@@ -14,6 +13,7 @@ import kotlinx.coroutines.launch
 import me.shetj.base.base.AbBindingActivity
 import me.shetj.base.ktx.dp2px
 import me.shetj.base.ktx.launch
+import me.shetj.base.ktx.logI
 
 class TestWaveViewActivity : AbBindingActivity<ActivityTestWaveViewBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,7 +27,9 @@ class TestWaveViewActivity : AbBindingActivity<ActivityTestWaveViewBinding>() {
 
         mViewBinding.waveWidth.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                mViewBinding.audioWaveView.setWaveWidth(progress / 100F *(40f.dp2px))
+                val fl = progress / 100F * (40f.dp2px)
+                "waveWidth:$fl".logI()
+                mViewBinding.audioWaveView.setWaveWidth(fl)
 
             }
 
@@ -39,7 +41,9 @@ class TestWaveViewActivity : AbBindingActivity<ActivityTestWaveViewBinding>() {
         mViewBinding.waveCornerRadius.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                mViewBinding.audioWaveView.setWaveCornerRadius(progress / 100F *(40f.dp2px))
+                val fl = progress / 100F * (40f.dp2px)
+                "waveCornerRadius:$fl".logI()
+                mViewBinding.audioWaveView.setWaveCornerRadius(fl)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -49,7 +53,9 @@ class TestWaveViewActivity : AbBindingActivity<ActivityTestWaveViewBinding>() {
 
         mViewBinding.waveSpace.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                mViewBinding.audioWaveView.setWaveSpace( progress / 100F *(20f.dp2px))
+                val fl = progress / 100F * (20f.dp2px)
+                "waveSpace:$fl".logI()
+                mViewBinding.audioWaveView.setWaveSpace(fl)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -59,6 +65,7 @@ class TestWaveViewActivity : AbBindingActivity<ActivityTestWaveViewBinding>() {
 
         mViewBinding.waveTimeSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                ("waveTimeSize:$progress").logI()
                 mViewBinding.audioWaveView.setTimeSize(progress.toFloat())
             }
 
@@ -69,6 +76,7 @@ class TestWaveViewActivity : AbBindingActivity<ActivityTestWaveViewBinding>() {
 
         mViewBinding.waveScale.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                "waveScale:${(progress*0.1f)}".logI()
                 mViewBinding.audioWaveView.setWaveScale(progress*0.1f)
             }
 
@@ -107,6 +115,12 @@ class TestWaveViewActivity : AbBindingActivity<ActivityTestWaveViewBinding>() {
             })
         }
 
+        mViewBinding.centerline.setOnClickListener {
+            mViewBinding.audioWaveView.isShowCenterLine = !mViewBinding.audioWaveView.isShowCenterLine
+        }
+        mViewBinding.topbottomline.setOnClickListener {
+            mViewBinding.audioWaveView.isShowTopBottomLine = !mViewBinding.audioWaveView.isShowTopBottomLine
+        }
 
         mViewBinding.startAdd.setOnClickListener {
             lifecycleScope.launch {

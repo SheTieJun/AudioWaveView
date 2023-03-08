@@ -54,7 +54,10 @@
         <attr name="wv_time_progress_text_size" format="dimension" />
         <!--        是否可以滚动-->
         <attr name="wv_can_scroll" format="boolean" />
-
+        <!--        是否显示中线-->
+        <attr name="wv_show_center_line" format="boolean" />
+        <!--        是否显示上、下线-->
+        <attr name="wv_show_top_bottom_line" format="boolean" />
     </declare-styleable>
 
 </resources>

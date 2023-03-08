@@ -13,7 +13,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:wv_bottom_line_margin="20dp"
+        app:wv_bottom_line_margin="10dp"
         app:wv_can_scroll="true"
         app:wv_center_line_width="2dp"
         app:wv_cut_icon="@mipmap/icon_test_touch"
@@ -23,6 +23,8 @@
         app:wv_one_second_rect_size="25"
         app:wv_rect_corner_radius="5dp"
         app:wv_rect_level="10"
+        app:wv_rect_space="2dp"
+        app:wv_rect_width="3dp"
         app:wv_time_progress_text_color="@color/black"
         app:wv_time_progress_text_size="12sp" />
 
@@ -62,6 +64,20 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="5dp"
                         android:text="清空frame" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/centerline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="5dp"
+                        android:text="中线" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/topbottomline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="5dp"
+                        android:text="上下线" />
 
                 </com.google.android.material.chip.ChipGroup>
 
@@ -179,7 +195,6 @@
                             android:id="@+id/center"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:checked="true"
                             android:text="purple"
                             android:textSize="12dp" />
 
@@ -267,7 +282,6 @@
                             android:id="@+id/blue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:checked="true"
                             android:text="BLUE"
                             android:textSize="12dp" />
 

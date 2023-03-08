@@ -26,8 +26,9 @@
         app:layout_constraintTop_toBottomOf="@id/tv_record_time"
         app:wv_bottom_line_margin="20dp"
         app:wv_can_scroll="true"
-        app:wv_center_line_color="#D9FF5A31"
+        app:wv_center_line_color="#FF5A31"
         app:wv_center_line_width="2dp"
+        app:wv_rect_corner_radius="5dp"
         app:wv_cut_icon="@mipmap/icon_test_touch"
         app:wv_cut_icon_size="25dp"
         app:wv_cut_line_width="1dp"
@@ -35,6 +36,8 @@
         app:wv_rect_left_color="#99FF5A31"
         app:wv_one_second_rect_size="25"
         app:wv_rect_level="15"
+        app:wv_rect_width="3dp"
+        app:wv_rect_space="2dp"
         app:wv_time_progress_text_color="@color/black"
         app:wv_time_progress_text_size="12sp" />
 

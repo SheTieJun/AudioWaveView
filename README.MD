@@ -1,5 +1,5 @@
 ## AudioWaveView
-
+[![](https://jitpack.io/v/SheTieJun/AudioWaveView.svg)](https://jitpack.io/#SheTieJun/AudioWaveView)
 仿喜马拉雅录音剪切的view
 
 - [X] 声音波纹
@@ -14,9 +14,23 @@
 > 
 > 也可以自行继承实现
 
-| 正常模式                     | DEMO                    |
-|--------------------------|-------------------------|
-| ![](/image/demo.webp)    | ![](/image/demo剪切.webp) |
+| 测试相关参数                | DEMO                    |
+|-----------------------|-------------------------|
+| ![](/image/demo.webp) | ![](/image/demo剪切.webp) |
+
+## 集成
+```groovy
+allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
+
+```groovy
+  implementation 'com.github.SheTieJun:AudioWaveView:Tag'
+```
 
 ```xml
 <com.shetj.waveview.AudioWaveView
@@ -128,6 +142,11 @@
 > 
 > 文件部分操作，需要自行完成
 
+### 5. 如何刚好颜色一半一半
+> 一开始我的做法，是计算矩形的位置，给2边的矩形用不同的画笔，但是会出现，中间的矩形没有全部移过去的时候，不会变色，效果不佳。
+> 
+> 后面的使用方法是：给左边一半画一个大矩形，使用画笔的PorterDuffXfermode的SRC_ATOP方式，只绘制重叠部分达到完美的一般
+
 ## DEMO已实现功能
 - [X] [添加DEMO](demo-record): 真实录音，剪切，播放
   - [X] 录音
@@ -135,9 +154,9 @@
   - [X] 播放
 - [X] [添加DEMO](demo-record): 覆盖录制  
 - [X] 降低渲染计算时间,不用全部遍历所有数据，直接计算获取开始和结束的索引
-## TODO
+## TODO(暂时不做了)
 - [ ] 添加交互：覆盖录制选中区域
 - [ ] 提高剪切后的显示的精准度
   - [ ] 如果要提高剪切后的显示精准度，那就需要每次剪切时间每次只是一个数据代表秒（如demo的一个矩形表示40ms）的倍数，否则会存在多矩形或者少矩形的情况
-    - 暂时没有好的方法进行解决，目前只要在改好整除的时候自定纠正过来
+    - 暂时没有好的方法进行解决，目前只要在刚好整除的时候自定纠正过来
 - [ ] 给移动剪切线的文字加上背景

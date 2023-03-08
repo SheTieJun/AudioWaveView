@@ -95,7 +95,7 @@ open class AudioWaveView @JvmOverloads constructor(
      */
     protected val mRectLeftPaint = Paint().apply {
         color = Color.parseColor("#93b3ea")
-        xfermode =  PorterDuffXfermode(SRC_ATOP)
+        xfermode = PorterDuffXfermode(SRC_ATOP)
     }
 
     protected val mIconPaint = Paint()
@@ -154,6 +154,17 @@ open class AudioWaveView @JvmOverloads constructor(
     protected var mOffsetCutStartX = 0f //左边剪切线的偏移
     protected var mOffsetCutEndX = 0f //右边剪切线的偏移
     protected var mOffsetX: Float = 0f
+    open var isShowCenterLine: Boolean = true
+        set(value) {
+            field = value
+            invalidate()
+        }
+    open var isShowTopBottomLine: Boolean = true
+        set(value) {
+            field = value
+            invalidate()
+        }
+
     protected open fun getStartX(): Float {
         return mOffsetX * mScaleFactor + mHalfEmptyLength
     }
@@ -282,7 +293,9 @@ open class AudioWaveView @JvmOverloads constructor(
         mCanScroll = ta.getBoolean(R.styleable.AudioWaveView_wv_can_scroll, true)
         mScaleFactor = ta.getFloat(R.styleable.AudioWaveView_wv_rect_scale, 1.0f).coerceAtLeast(mMinScale)
             .coerceAtMost(mMaxScale)
-        mRectCornerRadius = ta.getDimension(R.styleable.AudioWaveView_wv_rect_corner_radius,6f)
+        mRectCornerRadius = ta.getDimension(R.styleable.AudioWaveView_wv_rect_corner_radius, 6f)
+        isShowCenterLine = ta.getBoolean(R.styleable.AudioWaveView_wv_show_center_line, true)
+        isShowTopBottomLine = ta.getBoolean(R.styleable.AudioWaveView_wv_show_top_bottom_line, true)
         ta.recycle()
     }
 
@@ -332,60 +345,65 @@ open class AudioWaveView @JvmOverloads constructor(
         return result
     }
 
-    fun setCenterLineColor(color: Int){
+    fun setCenterLineColor(color: Int) {
         mCenterLinePaint.color = color
         postInvalidate()
     }
 
-    fun setLeftPaintColor(color: Int){
+    fun setLeftPaintColor(color: Int) {
         mRectLeftPaint.color = color
         postInvalidate()
     }
 
-    fun setRightPaintColor(color: Int){
+    fun setRightPaintColor(color: Int) {
         mRectRightPaint.color = color
         postInvalidate()
     }
 
-    fun setCutSelectPaintColor(color: Int){
+    fun setCutSelectPaintColor(color: Int) {
         val alpha = Color.alpha(color)
-        if (alpha > 0.3*255){
-            Log.e(TAG,"setCutSelectPaintColor fail `alpha == $alpha` is not allow, preferably less than ${Integer.toHexString((0.3*255).toInt())}")
+        if (alpha > 0.3 * 255) {
+            Log.e(
+                TAG,
+                "setCutSelectPaintColor fail `alpha == $alpha` is not allow, preferably less than ${
+                    Integer.toHexString((0.3 * 255).toInt())
+                }"
+            )
             return
         }
         mSelectedBGPaint.color = color
         postInvalidate()
     }
 
-    fun setCutMarkerPointPaintColor(color: Int){
+    fun setCutMarkerPointPaintColor(color: Int) {
         mCutMarkerPoint.color = color
         postInvalidate()
     }
 
-    fun setWaveWidth(width:Float){
+    fun setWaveWidth(width: Float) {
         mRectWidth = width
         checkOffsetX()
         postInvalidate()
     }
 
-    fun setWaveSpace(spaceWidth:Float){
+    fun setWaveSpace(spaceWidth: Float) {
         mRectSpace = spaceWidth
         checkOffsetX()
         invalidate()
     }
 
-    fun setWaveCornerRadius(radius:Float){
+    fun setWaveCornerRadius(radius: Float) {
         mRectCornerRadius = radius
         postInvalidate()
     }
 
-    fun setWaveScale(scale: Float){
+    fun setWaveScale(scale: Float) {
         mScaleFactor = scale.coerceAtLeast(mMinScale).coerceAtMost(mMaxScale)
         postInvalidate()
     }
 
-    fun setTimeSize(sizeDp:Float){
-        mTextTimePaint.textSize  = dip2px(sizeDp).toFloat()
+    fun setTimeSize(sizeDp: Float) {
+        mTextTimePaint.textSize = dip2px(sizeDp).toFloat()
         postInvalidate()
     }
 
@@ -783,7 +801,6 @@ open class AudioWaveView @JvmOverloads constructor(
 
     override fun draw(canvas: Canvas?) {
         super.draw(canvas)
-
         val halfWidth = (width / 2).toFloat()
         val halfHeight = (height / 2).toFloat()
         canvas?.apply {
@@ -791,7 +808,7 @@ open class AudioWaveView @JvmOverloads constructor(
             if (mFrameArray.get().isNotEmpty()) {
                 val endIndex =
                     ((width + 20 - getStartX()) / (mRectWidth * mScaleFactor + mRectSpace * mScaleFactor) + 1).toInt()
-                        .coerceAtMost(mFrameArray.getSize()-1)
+                        .coerceAtMost(mFrameArray.getSize() - 1)
                 val firstIndex =
                     ((-10 - getStartX()) / (mRectWidth * mScaleFactor + mRectSpace * mScaleFactor) - 1).toInt()
                         .coerceAtLeast(0)
@@ -820,64 +837,64 @@ open class AudioWaveView @JvmOverloads constructor(
                 height.toFloat(),
                 mRectLeftPaint
             )
-
-            //先判断一共需要画的刻度是多少
-            val time = (mContentLength / mSecondWidth).toInt()
-            // 可能没有内容，我们也要画为了美观
-            val realSecondWidth = (mSecondWidth) * mScaleFactor
-            val i = (width / realSecondWidth).toInt()
-
             val mFontMetrics = mTextTimePaint.fontMetrics
             val mTop = mFontMetrics.top
             val mBottom = mFontMetrics.bottom
             val baseLineY = topLineMargin / 2 - mTop / 2 - mBottom / 2 //基线中间点的y轴计算公式
-            // 先不管至少执行3次，后面可以总结优化下
-            repeat(i + time) {
-                mRectTimeStart = getStartX() + it * realSecondWidth
-                mRectTimeLine.left = mRectTimeStart -1
-                mRectTimeLine.top = topLineMargin - 10f
-                mRectTimeLine.right = mRectTimeStart + 1f
-                mRectTimeLine.bottom = topLineMargin
-                if (mRectTimeStart >= 0 && mRectTimeStart <= width) {
-                    //只有屏幕之内的刻度才画出来
-                    drawRoundRect(mRectTimeLine, 1f, 1f, mLinePaint)
-                    if (realSecondWidth > 90) {
-                        drawText(it.covertToTime(), mRectTimeStart, baseLineY, mTextTimePaint)
-                    } else if (realSecondWidth > 60) {
-                        if (it % 2 == 0) {
+            if (isShowTopBottomLine) {
+                //先判断一共需要画的刻度是多少
+                val time = (mContentLength / mSecondWidth).toInt()
+                // 可能没有内容，我们也要画为了美观
+                val realSecondWidth = (mSecondWidth) * mScaleFactor
+                val i = (width / realSecondWidth).toInt()
+                repeat(i + time) {
+                    mRectTimeStart = getStartX() + it * realSecondWidth
+                    if (mRectTimeStart >= 0 && mRectTimeStart <= width) {
+                        mRectTimeLine.left = mRectTimeStart - 1
+                        mRectTimeLine.top = topLineMargin - 10f
+                        mRectTimeLine.right = mRectTimeStart + 1f
+                        mRectTimeLine.bottom = topLineMargin
+                        //只有屏幕之内的刻度才画出来
+                        drawRoundRect(mRectTimeLine, 1f, 1f, mLinePaint)
+                        if (realSecondWidth > 90) {
                             drawText(it.covertToTime(), mRectTimeStart, baseLineY, mTextTimePaint)
-                        }
-                    } else if (realSecondWidth > 30) {
-                        if (it % 3 == 0) {
-                            drawText(it.covertToTime(), mRectTimeStart, baseLineY, mTextTimePaint)
-                        }
-                    } else {
-                        if (it % 5 == 0) {
-                            drawText(it.covertToTime(), mRectTimeStart, baseLineY, mTextTimePaint)
+                        } else if (realSecondWidth > 60) {
+                            if (it % 2 == 0) {
+                                drawText(it.covertToTime(), mRectTimeStart, baseLineY, mTextTimePaint)
+                            }
+                        } else if (realSecondWidth > 30) {
+                            if (it % 3 == 0) {
+                                drawText(it.covertToTime(), mRectTimeStart, baseLineY, mTextTimePaint)
+                            }
+                        } else {
+                            if (it % 5 == 0) {
+                                drawText(it.covertToTime(), mRectTimeStart, baseLineY, mTextTimePaint)
+                            }
                         }
                     }
                 }
+                // 上线
+                drawLine(
+                    min(mOffsetX * mScaleFactor, 0f),
+                    topLineMargin,
+                    min(getStartX() + mContentLength * mScaleFactor + mHalfEmptyLength, width.toFloat()),
+                    topLineMargin,
+                    mLinePaint
+                )
+                // 下线
+                drawLine(
+                    min(mOffsetX * mScaleFactor, 0f),
+                    height - bottomLineMargin,
+                    min(getStartX() + mContentLength * mScaleFactor + mHalfEmptyLength, width.toFloat()),
+                    height - bottomLineMargin,
+                    mLinePaint
+                )
             }
-
-            // 上线
-            drawLine(
-                min(mOffsetX * mScaleFactor, 0f),
-                topLineMargin,
-                min(getStartX() + mContentLength * mScaleFactor + mHalfEmptyLength, width.toFloat()),
-                topLineMargin,
-                mLinePaint
-            )
-            // 下线
-            drawLine(
-                min(mOffsetX * mScaleFactor, 0f),
-                height - bottomLineMargin,
-                min(getStartX() + mContentLength * mScaleFactor + mHalfEmptyLength, width.toFloat()),
-                height - bottomLineMargin,
-                mLinePaint
-            )
-            // 画中线
-            drawLine(halfWidth, 2f, halfWidth, height - bottomLineMargin, mCenterLinePaint)
-            drawCircle(halfWidth, (cirWidth / 2).toFloat() + 8f, cirWidth.toFloat(), mCenterLinePaint)
+            if (isShowCenterLine) {
+                // 画中线
+                drawLine(halfWidth, 2f, halfWidth, height - bottomLineMargin, mCenterLinePaint)
+                drawCircle(halfWidth, (cirWidth / 2).toFloat() + 8f, cirWidth.toFloat(), mCenterLinePaint)
+            }
             canvas.restore()
             if (mIsEditModel) {
                 // 画矩形
