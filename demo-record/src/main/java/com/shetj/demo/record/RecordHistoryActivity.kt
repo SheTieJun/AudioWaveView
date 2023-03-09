@@ -1,6 +1,5 @@
 package com.shetj.demo.record
 
-import android.view.MenuItem
 import com.chad.library.adapter.base.animation.ScaleInAnimation
 import com.shetj.demo.record.databinding.ActivityRecordHistoryBinding
 import com.shetj.demo.record.model.RecordInfo
@@ -75,5 +74,9 @@ class RecordHistoryActivity :
             return
         }
         super.onBackPressed()
+    }
+
+    override fun setUpClicks() {
+
     }
 }

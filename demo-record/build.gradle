@@ -41,16 +41,13 @@ android {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation files("libs/ffmpeg-lite-kt-release.aar")
-    implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation 'com.google.android.material:material:1.4.+'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
     def sdk_version = "33de393c74"
     implementation "com.github.SheTieJun.Mp3Recorder:recorder-core:$sdk_version"
     implementation "com.github.SheTieJun.Mp3Recorder:recorder-mix:$sdk_version"
-    implementation 'com.github.SheTieJun:BaseKit:4624bf45c2'
+    implementation 'com.github.SheTieJun:BaseKit:0ed845395c'
     implementation project(path: ':waveview')
     kapt "androidx.room:room-compiler:2.4.3"
 }

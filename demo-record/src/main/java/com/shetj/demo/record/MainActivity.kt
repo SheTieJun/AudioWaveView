@@ -1,6 +1,7 @@
 package com.shetj.demo.record
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.net.Uri
@@ -143,6 +144,7 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
                 }
             }
 
+            @SuppressLint("SetTextI18n")
             override fun onUpdateCutPosition(startPosition: Long, endPosition: Long) {
                 super.onUpdateCutPosition(startPosition, endPosition)
                 mViewBinding.startCutTime.text = "开始：" + startPosition.covertToTimets()
@@ -298,6 +300,10 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
     override fun onStop() {
         super.onStop()
         audioPlayer.pause()
+    }
+
+    override fun setUpClicks() {
+
     }
 
     private fun initPlayAudio() {

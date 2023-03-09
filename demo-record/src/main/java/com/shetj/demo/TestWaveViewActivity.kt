@@ -14,11 +14,62 @@ import me.shetj.base.base.AbBindingActivity
 import me.shetj.base.ktx.dp2px
 import me.shetj.base.ktx.launch
 import me.shetj.base.ktx.logI
+import me.shetj.base.ktx.setAppearance
 
 class TestWaveViewActivity : AbBindingActivity<ActivityTestWaveViewBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setAppearance(true)
     }
+
+    override fun setUpClicks() {
+        mViewBinding.centerline.setOnClickListener {
+            mViewBinding.audioWaveView.isShowCenterLine = !mViewBinding.audioWaveView.isShowCenterLine
+        }
+        mViewBinding.topbottomline.setOnClickListener {
+            mViewBinding.audioWaveView.isShowTopBottomLine = !mViewBinding.audioWaveView.isShowTopBottomLine
+        }
+
+        mViewBinding.startAdd.setOnClickListener {
+            lifecycleScope.launch {
+                repeat(25) {
+                    delay(40)
+                    duration += 40
+                    mViewBinding.audioWaveView.addFrame((1..9).random().toFloat(), duration)
+                }
+            }
+        }
+
+        mViewBinding.end.setOnClickListener {
+            mViewBinding.audioWaveView.scrollToEnd()
+        }
+
+        mViewBinding.openEdit.setOnClickListener {
+            mViewBinding.audioWaveView.startEditModel()
+        }
+
+        mViewBinding.cutEdit.setOnClickListener {
+            launch {
+                mViewBinding.audioWaveView.cutSelect()
+            }
+        }
+
+        mViewBinding.closeEdit.setOnClickListener {
+            mViewBinding.audioWaveView.closeEditModel()
+        }
+
+        mViewBinding.play.setOnClickListener {
+            mViewBinding.audioWaveView.startPlayAnim()
+        }
+
+        mViewBinding.pause.setOnClickListener {
+            mViewBinding.audioWaveView.pausePlayAnim()
+        }
+        mViewBinding.clean.setOnClickListener {
+            mViewBinding.audioWaveView.clearFrame()
+        }
+    }
+
     private var duration = 0L
 
     override fun initView() {
@@ -115,50 +166,6 @@ class TestWaveViewActivity : AbBindingActivity<ActivityTestWaveViewBinding>() {
             })
         }
 
-        mViewBinding.centerline.setOnClickListener {
-            mViewBinding.audioWaveView.isShowCenterLine = !mViewBinding.audioWaveView.isShowCenterLine
-        }
-        mViewBinding.topbottomline.setOnClickListener {
-            mViewBinding.audioWaveView.isShowTopBottomLine = !mViewBinding.audioWaveView.isShowTopBottomLine
-        }
 
-        mViewBinding.startAdd.setOnClickListener {
-            lifecycleScope.launch {
-                repeat(25) {
-                    delay(40)
-                    duration += 40
-                    mViewBinding.audioWaveView.addFrame((1..9).random().toFloat(), duration)
-                }
-            }
-        }
-
-        mViewBinding.end.setOnClickListener {
-            mViewBinding.audioWaveView.scrollToEnd()
-        }
-
-        mViewBinding.openEdit.setOnClickListener {
-            mViewBinding.audioWaveView.startEditModel()
-        }
-
-        mViewBinding.cutEdit.setOnClickListener {
-            launch {
-                mViewBinding.audioWaveView.cutSelect()
-            }
-        }
-
-        mViewBinding.closeEdit.setOnClickListener {
-            mViewBinding.audioWaveView.closeEditModel()
-        }
-
-        mViewBinding.play.setOnClickListener {
-            mViewBinding.audioWaveView.startPlayAnim()
-        }
-
-        mViewBinding.pause.setOnClickListener {
-            mViewBinding.audioWaveView.pausePlayAnim()
-        }
-        mViewBinding.clean.setOnClickListener {
-            mViewBinding.audioWaveView.clearFrame()
-        }
     }
 }
