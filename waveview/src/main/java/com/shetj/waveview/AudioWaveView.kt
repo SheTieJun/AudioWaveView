@@ -806,13 +806,15 @@ open class AudioWaveView @JvmOverloads constructor(
         canvas?.apply {
             canvas.saveLayer(0f, 0f, width.toFloat(), height.toFloat(), null)
             if (mFrameArray.get().isNotEmpty()) {
+
+                // 获取屏幕需要展示的下标
                 val endIndex =
                     ((width + 20 - getStartX()) / (mRectWidth * mScaleFactor + mRectSpace * mScaleFactor) + 1).toInt()
                         .coerceAtMost(mFrameArray.getSize() - 1)
                 val firstIndex =
                     ((-10 - getStartX()) / (mRectWidth * mScaleFactor + mRectSpace * mScaleFactor) - 1).toInt()
                         .coerceAtLeast(0)
-
+                // 遍历下班展示矩形
                 for (index in firstIndex..endIndex) {
                     mRectStart =
                         getStartX() + index * mRectWidth * mScaleFactor + mRectSpace * mScaleFactor * index
@@ -821,9 +823,12 @@ open class AudioWaveView @JvmOverloads constructor(
                     if (mRectEnd <= width + 20 || mRectStart >= -10) {
                         val halfRectHeight =
                             min(mFrameArray.get()[index] / mLevel.toFloat(), 1f) / 2 * halfHeight //矩形的半高
-                        if (halfRectHeight  <= mRectWidth/2){ //如果小于mRectWidth，直接画圆
-                            drawCircle((mRectEnd- mRectStart)/2+mRectStart,halfHeight,mRectWidth/2,mRectRightPaint)
+                        // 获取到矩形一半的高度
+                        if (halfRectHeight  <= mRectWidth * mScaleFactor/2){
+                            //如果小于mRectWidth，直接画圆
+                            drawCircle((mRectEnd- mRectStart)/2+mRectStart,halfHeight,mRectWidth * mScaleFactor/2,mRectRightPaint)
                         }else{
+                            //否则画矩形
                             mRectVoiceLine.left = mRectStart
                             mRectVoiceLine.top = halfHeight - halfRectHeight
                             mRectVoiceLine.right = mRectEnd

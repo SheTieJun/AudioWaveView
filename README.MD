@@ -8,12 +8,14 @@
 - [X] 缩放声波
 - [X] 覆盖录制逻辑实现
 
+
 > 只做交互逻辑，不做其他逻辑，所以不直接支持PCM,但是使用者可以audio文件通过转PCM获取db,
-> 
+
+
 > 在根据自己的实际情况设置wv_rect_level和wv_one_second_rect_size 然后添加frame
 > 
+
 > demo的一个矩形表示40ms，一秒25个小矩形 ：wv_one_second_rect_size = "25",wv_rect_level = "10"
-> 也可以自行继承实现
 
 | 测试相关参数                | DEMO                    |
 |-----------------------|-------------------------|
@@ -56,21 +58,24 @@ allprojects {
 ```xml
 
 <declare-styleable name="AudioWaveView">
+  
+    <!--        第一部分：顶部的线和底部线-->
     <!--        顶部的线到底部的距离-->
     <attr name="wv_top_line_margin" format="dimension" />
     <!--        底部的线到底部的距离-->
     <attr name="wv_bottom_line_margin" format="dimension" />
-    <!--        一秒存在的矩形数量 默认25个 -->
-    <attr name="wv_one_second_rect_size" format="float" />
     <!--        顶部线和底部线的颜色-->
     <attr name="wv_top_bottom_line_color" format="color" />
     <!--        顶部线和底部线的颜色-->
     <attr name="wv_top_bottom_line_width" format="dimension" />
-    <!--        矩形相关设置-->
+  
+    <!--        第二部分：矩形相关设置-->
     <!--        缩放级别内部限制,默认1f-->
     <attr name="wv_rect_scale" format="float" />
     <!--    矩形分几个级别，默认10种高度的矩形-->
     <attr name="wv_rect_level" format="integer" />
+    <!--        一秒存在的矩形数量 默认25个 -->
+    <attr name="wv_one_second_rect_size" format="float" />
     <!--    矩形的宽度-->
     <attr name="wv_rect_width" format="dimension" />
     <!--    矩形的圆角-->
@@ -82,11 +87,11 @@ allprojects {
     <!--   矩形中线左边的颜色 -->
     <attr name="wv_rect_left_color" format="color" />
 
-    <!--        中线的颜色，宽度-->
+    <!--     第三部分：中线的颜色，宽度-->
     <attr name="wv_center_line_color" format="color" />
     <attr name="wv_center_line_width" format="dimension" />
 
-    <!--        剪切部分的设置-->
+    <!--     第四部分：剪切部分的设置-->
     <!--        icon 资源-->
     <attr name="wv_cut_icon" format="reference" />
     <!--        icon的大小-->
@@ -102,12 +107,17 @@ allprojects {
     <!--        2条剪切线中间区域选中的颜色-->
     <attr name="wv_cut_select_color" format="color" />
 
+    <!--     第五部分：其他的设置-->
     <!--        时间刻度的字体颜色-->
     <attr name="wv_time_progress_text_color" format="color" />
     <!--    时间刻度的字体大小    -->
     <attr name="wv_time_progress_text_size" format="dimension" />
     <!--        是否可以滚动-->
     <attr name="wv_can_scroll" format="boolean" />
+    <!--        是否显示中线-->
+    <attr name="wv_show_center_line" format="boolean" />
+    <!--        是否显示上、下线-->
+    <attr name="wv_show_top_bottom_line" format="boolean" />
 
 </declare-styleable>
 ```

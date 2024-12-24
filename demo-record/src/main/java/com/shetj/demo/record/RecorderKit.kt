@@ -68,10 +68,10 @@ class RecorderKit(
                     this.saveFile = file
                 }
                 mRecorder?.setOutputFile(saveFile, isContinue = true)
-                mRecorder?.muteRecord(true)
+                mRecorder?.muteRecord(true) //防止部分手机开头的爆破音，开启静音
                 mRecorder?.start()
                 delay(40)
-                mRecorder?.muteRecord(false)
+                mRecorder?.muteRecord(false)//结束静音
                 hasRecord = true
             }
             RecordState.PAUSED -> {
@@ -116,6 +116,7 @@ class RecorderKit(
             mp3Quality = 5
             recordListener = this@RecorderKit
             permissionListener = this@RecorderKit
+            enableAudioEffect = true
         }.buildMix(context)
         mRecorder?.setMaxTime(maxDuration, maxDuration - 20 * 1000)
     }
