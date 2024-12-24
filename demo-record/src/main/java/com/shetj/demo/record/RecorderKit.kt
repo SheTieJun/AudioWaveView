@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.MediaRecorder
 import android.net.Uri
 import android.text.TextUtils
+import kotlinx.coroutines.delay
 import me.shetj.base.BaseKit.isDebug
 import me.shetj.base.tools.file.EnvironmentStorage
 import me.shetj.player.PlayerListener
@@ -50,7 +51,7 @@ class RecorderKit(
     private var mRecorder: BaseRecorder? = null
     private var saveFile = ""
 
-    fun startOrPause(file: String = "") {
+    suspend fun startOrPause(file: String = "") {
         if (mRecorder == null) {
             initRecorder()
         }
@@ -67,7 +68,10 @@ class RecorderKit(
                     this.saveFile = file
                 }
                 mRecorder?.setOutputFile(saveFile, isContinue = true)
+                mRecorder?.muteRecord(true)
                 mRecorder?.start()
+                delay(40)
+                mRecorder?.muteRecord(false)
                 hasRecord = true
             }
             RecordState.PAUSED -> {

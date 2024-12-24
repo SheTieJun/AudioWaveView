@@ -35,7 +35,7 @@
         app:wv_cut_time_text_size="12sp"
         app:wv_rect_left_color="#99FF5A31"
         app:wv_one_second_rect_size="25"
-        app:wv_rect_level="15"
+        app:wv_rect_level="10"
         app:wv_rect_width="3dp"
         app:wv_rect_space="2dp"
         app:wv_time_progress_text_color="@color/black"

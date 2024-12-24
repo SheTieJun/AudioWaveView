@@ -22,12 +22,13 @@ import com.shetj.waveview.AudioWaveView.OnChangeListener
 import com.shetj.waveview.covertToTimets
 import me.shetj.base.ktx.isTrue
 import me.shetj.base.ktx.launch
+import me.shetj.base.ktx.launchActivity
 import me.shetj.base.ktx.logI
 import me.shetj.base.ktx.start
 import me.shetj.base.ktx.startRequestPermission
 import me.shetj.base.ktx.toJson
 import me.shetj.base.ktx.withIO
-import me.shetj.base.mvvm.BaseBindingActivity
+import me.shetj.base.mvvm.viewbind.BaseBindingActivity
 import me.shetj.base.tools.app.ArmsUtils
 import me.shetj.base.tools.app.Tim
 import me.shetj.ffmpeg.FFmpegKit
@@ -55,7 +56,7 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
         override fun onRecording(time: Long, volume: Int) {
             launch {
                 val currentLevel = mViewModel.getVoiceLevel(volume)
-                mViewBinding.waveview.addFrame(currentLevel, time)
+                mBinding.waveview.addFrame(currentLevel, time)
                 mViewModel.timeLiveData.value = (time)
             }
         }
@@ -67,10 +68,10 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
         override fun onSuccess(isAutoComplete: Boolean, file: String, time: Long) {
             updateUIState(RecordState.STOPPED)
             mViewModel.saveRecordToDB(file)
-            mViewBinding.waveview.clearFrame()
+            mBinding.waveview.clearFrame()
             mViewModel.timeLiveData.postValue(0)
-            mViewBinding.playTime.text = Util.formatSeconds4(0)
-            mViewBinding.recordStateMsg.text = ""
+            mBinding.playTime.text = Util.formatSeconds4(0)
+            mBinding.recordStateMsg.text = ""
         }
     }
 
@@ -79,63 +80,63 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
     private val playCallback = object : SimPlayerListener() {
         override fun onStart(duration: Int) {
             super.onStart(duration)
-            mViewBinding.waveview.startPlayAnim()
+            mBinding.waveview.startPlayAnim()
         }
 
         override fun onResume() {
             super.onResume()
-            mViewBinding.waveview.startPlayAnim()
+            mBinding.waveview.startPlayAnim()
 
         }
 
         override fun onPause() {
             super.onPause()
-            mViewBinding.waveview.pausePlayAnim()
+            mBinding.waveview.pausePlayAnim()
         }
     }
 
-    override fun initView() {
-        super.initView()
+    override fun initBaseView() {
+        super.initBaseView()
         Tim.setLogAuto(true)
         //添加点击效果
         ArmsUtils.addScaleTouchEffect(
-            mViewBinding.ivRecordPlay,
-            mViewBinding.ivRecordState,
-            mViewBinding.ivRecordHistory
+            mBinding.ivRecordPlay,
+            mBinding.ivRecordState,
+            mBinding.ivRecordHistory
         )
-        mViewBinding.ivRecordPlay.setOnClickListener {
+        mBinding.ivRecordPlay.setOnClickListener {
             if (needToStart) {
-                mViewBinding.waveview.scrollToStart()
+                mBinding.waveview.scrollToStart()
                 needToStart = false
             }
             audioPlayer.playOrPause(recorder.getSaveUrl(), playCallback)
         }
 
-        mViewBinding.cancelCut.setOnClickListener {
-            mViewBinding.waveview.closeEditModel()
+        mBinding.cancelCut.setOnClickListener {
+            mBinding.waveview.closeEditModel()
         }
 
-        mViewBinding.startCut.setOnClickListener {
-            mViewBinding.waveview.startEditModel()
+        mBinding.startCut.setOnClickListener {
+            mBinding.waveview.startEditModel()
         }
 
-        mViewBinding.cutAudio.setOnClickListener {
+        mBinding.cutAudio.setOnClickListener {
             launch {
-                mViewBinding.waveview.cutSelect()
+                mBinding.waveview.cutSelect()
             }
         }
 
-        mViewBinding.waveview.setListener(object : OnChangeListener {
+        mBinding.waveview.setListener(object : OnChangeListener {
             override fun onUpdateCurrentPosition(position: Long, duration: Long) {
                 audioPlayer.setSeekToPlay(position.toInt())
-                mViewBinding.playTime.text = Util.formatSeconds4(position)
+                mBinding.playTime.text = Util.formatSeconds4(position)
                 mViewModel.timeLiveData.postValue(duration)
                 mViewModel.recordOverWriter.postValue(position != duration)
             }
 
             override suspend fun onCutAudio(startTime: Long, endTime: Long): Boolean {
                 if (startTime == endTime) return true
-                if (startTime == 0L && endTime == mViewBinding.waveview.getDuration()) {
+                if (startTime == 0L && endTime == mBinding.waveview.getDuration()) {
                     recorder.updateSaveFile(recorder.getAudioFileName("merge"))
                     return true
                 }
@@ -147,46 +148,46 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
             @SuppressLint("SetTextI18n")
             override fun onUpdateCutPosition(startPosition: Long, endPosition: Long) {
                 super.onUpdateCutPosition(startPosition, endPosition)
-                mViewBinding.startCutTime.text = "开始：" + startPosition.covertToTimets()
-                mViewBinding.endCutTime.text = "结束：" + endPosition.covertToTimets()
+                mBinding.startCutTime.text = "开始：" + startPosition.covertToTimets()
+                mBinding.endCutTime.text = "结束：" + endPosition.covertToTimets()
             }
 
             override fun onEditModelChange(isEditModel: Boolean) {
-                mViewBinding.ivRecordState.isEnabled = !isEditModel
-                mViewBinding.cancelCut.isVisible = isEditModel
-                mViewBinding.cutAudio.isVisible = isEditModel
-                mViewBinding.startCut.isVisible = !isEditModel
+                mBinding.ivRecordState.isEnabled = !isEditModel
+                mBinding.cancelCut.isVisible = isEditModel
+                mBinding.cutAudio.isVisible = isEditModel
+                mBinding.startCut.isVisible = !isEditModel
             }
 
             override fun onCutFinish() {
                 super.onCutFinish()
-                val duration = mViewBinding.waveview.getDuration()
+                val duration = mBinding.waveview.getDuration()
                 recorder.setTime(duration)
                 mViewModel.timeLiveData.postValue(duration)
             }
 
             override fun onUpdateScale(scale: Float) {
                 super.onUpdateScale(scale)
-                mViewBinding.viewScale.text = "缩放级别：$scale"
+                mBinding.viewScale.text = "缩放级别：$scale"
             }
         })
 
-        mViewBinding.ivRecordHistory.setOnClickListener {
+        mBinding.ivRecordHistory.setOnClickListener {
             if (!recorder.hasRecord()) {
                 mViewModel.newRecordCount.postValue(0)
-                start<RecordHistoryActivity>()
+                launchActivity<RecordHistoryActivity>{}
             } else {
                 recorder.complete()
             }
         }
 
 
-        mViewBinding.ivRecordState.setOnClickListener {
-            startRequestPermission("startRequestPermission", Manifest.permission.RECORD_AUDIO) {
+        mBinding.ivRecordState.setOnClickListener {
+            startRequestPermission(  Manifest.permission.RECORD_AUDIO) {
                 if (it) {
                     launch {
                         if (mViewModel.recordOverWriter.isTrue()) {
-                            mViewBinding.waveview.startOverwrite()
+                            mBinding.waveview.startOverwrite()
                         }
                         recorder.startOrPause()
                     }
@@ -195,19 +196,19 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
         }
 
         mViewModel.timeLiveData.observe(this) {
-            mViewBinding.tvRecordTime.text = Util.formatSeconds4(it)
+            mBinding.tvRecordTime.text = Util.formatSeconds4(it)
         }
 
         mViewModel.newRecordCount.observe(this) {
-            mViewBinding.ivRecordHistory.updateCount(it)
+            mBinding.ivRecordHistory.updateCount(it)
         }
 
         mViewModel.recordOverWriter.observe(this) {
             if (recorder.canOverWriter()) {
                 if (it) {
-                    mViewBinding.recordStateMsg.text = "覆盖录制"
+                    mBinding.recordStateMsg.text = "覆盖录制"
                 } else {
-                    mViewBinding.recordStateMsg.text = "继续录制"
+                    mBinding.recordStateMsg.text = "继续录制"
                 }
             }
         }
@@ -282,14 +283,11 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
     }
 
 
-    override fun onBackPressed() {
-        super.onBackPressed()
+    override fun onBack() {
+        super.onBack()
         recorder.pause()
     }
 
-    override fun initData() {
-        super.initData()
-    }
 
     override fun onDestroy() {
         super.onDestroy()
@@ -320,31 +318,31 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
      * 更新UI状态
      */
     fun updateUIState(state: RecordState) {
-        mViewBinding.ivRecordHistory.updateState(state)
-        mViewBinding.ivRecordState.updateState(state)
+        mBinding.ivRecordHistory.updateState(state)
+        mBinding.ivRecordState.updateState(state)
         val canPlay = state != RecordState.RECORDING && recorder.hasRecord()
         if (canPlay) {
-            mViewBinding.ivRecordPlay.imageTintList =
+            mBinding.ivRecordPlay.imageTintList =
                 ColorStateList.valueOf(ContextCompat.getColor(this, R.color.black))
             //计算时间差值
             mViewModel.difDuration =
                 getRecordDuration() - Util.getAudioLength(recorder.getSaveUrl())
         } else {
-            mViewBinding.ivRecordPlay.imageTintList =
+            mBinding.ivRecordPlay.imageTintList =
                 ColorStateList.valueOf(ContextCompat.getColor(this, me.shetj.base.R.color.blackHintText))
         }
-        mViewBinding.ivRecordPlay.isEnabled = canPlay
-        mViewBinding.playTime.isVisible = canPlay
-        mViewBinding.startCut.isVisible = state == RecordState.PAUSED
+        mBinding.ivRecordPlay.isEnabled = canPlay
+        mBinding.playTime.isVisible = canPlay
+        mBinding.startCut.isVisible = state == RecordState.PAUSED
         when (state) {
             RecordState.RECORDING -> {
-                mViewBinding.recordStateMsg.text = "暂停录制"
+                mBinding.recordStateMsg.text = "暂停录制"
                 needToStart = true
-                mViewBinding.waveview.setEnableScroll(false)
+                mBinding.waveview.setEnableScroll(false)
             }
             RecordState.PAUSED -> {
-                mViewBinding.waveview.setEnableScroll(true)
-                mViewBinding.recordStateMsg.text = "继续录制"
+                mBinding.waveview.setEnableScroll(true)
+                mBinding.recordStateMsg.text = "继续录制"
             }
             RecordState.STOPPED -> {
 
@@ -354,19 +352,19 @@ class MainActivity : BaseBindingActivity<ActivityMainBinding, RecordViewModel>()
 
 
     private fun updateUIState(state: PlaySate) {
-        mViewBinding.ivRecordState.isEnabled = state !is Playing
+        mBinding.ivRecordState.isEnabled = state !is Playing
         when (state) {
             Pause -> {
-                mViewBinding.ivRecordPlay.setImageResource(R.drawable.icon_play_audio)
-                mViewBinding.waveview.setEnableScroll(true)
+                mBinding.ivRecordPlay.setImageResource(R.drawable.icon_play_audio)
+                mBinding.waveview.setEnableScroll(true)
             }
             Playing -> {
-                mViewBinding.ivRecordPlay.setImageResource(R.drawable.icon_puase_audio)
-                mViewBinding.waveview.setEnableScroll(false)
+                mBinding.ivRecordPlay.setImageResource(R.drawable.icon_puase_audio)
+                mBinding.waveview.setEnableScroll(false)
             }
             Stop -> {
-                mViewBinding.ivRecordPlay.setImageResource(R.drawable.icon_play_audio)
-                mViewBinding.waveview.setEnableScroll(true)
+                mBinding.ivRecordPlay.setImageResource(R.drawable.icon_play_audio)
+                mBinding.waveview.setEnableScroll(true)
             }
         }
     }

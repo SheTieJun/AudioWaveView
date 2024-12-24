@@ -821,11 +821,15 @@ open class AudioWaveView @JvmOverloads constructor(
                     if (mRectEnd <= width + 20 || mRectStart >= -10) {
                         val halfRectHeight =
                             min(mFrameArray.get()[index] / mLevel.toFloat(), 1f) / 2 * halfHeight //矩形的半高
-                        mRectVoiceLine.left = mRectStart
-                        mRectVoiceLine.top = halfHeight - halfRectHeight
-                        mRectVoiceLine.right = mRectEnd
-                        mRectVoiceLine.bottom = halfHeight + halfRectHeight
-                        drawRoundRect(mRectVoiceLine, mRectCornerRadius, mRectCornerRadius, mRectRightPaint)
+                        if (halfRectHeight  <= mRectWidth/2){ //如果小于mRectWidth，直接画圆
+                            drawCircle((mRectEnd- mRectStart)/2+mRectStart,halfHeight,mRectWidth/2,mRectRightPaint)
+                        }else{
+                            mRectVoiceLine.left = mRectStart
+                            mRectVoiceLine.top = halfHeight - halfRectHeight
+                            mRectVoiceLine.right = mRectEnd
+                            mRectVoiceLine.bottom = halfHeight + halfRectHeight
+                            drawRoundRect(mRectVoiceLine, mRectCornerRadius, mRectCornerRadius, mRectRightPaint)
+                        }
                     }
                 }
             }

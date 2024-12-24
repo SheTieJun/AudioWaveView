@@ -10,31 +10,23 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import me.shetj.base.ktx.launch
 import me.shetj.base.ktx.setAppearance
-import me.shetj.base.mvvm.BaseBindingActivity
+import me.shetj.base.mvvm.viewbind.BaseBindingActivity
 
 /**
  * 录音历史记录
  */
-class RecordHistoryActivity :
-    BaseBindingActivity<ActivityRecordHistoryBinding, HistoryViewModel>() {
+class RecordHistoryActivity : BaseBindingActivity<ActivityRecordHistoryBinding, HistoryViewModel>() {
 
 
     private val mAdapter: HistoryRecordAdapter by lazy { HistoryRecordAdapter() }
 
-    override fun initView() {
-        super.initView()
+    override fun initBaseView() {
+        super.initBaseView()
         setAppearance(true)
         setTitle("录音")
-        with(mViewBinding) {
+        with(mBinding) {
             mAdapter.adapterAnimation = ScaleInAnimation()
-//            mAdapter.setOnItemLongClickListener { _, view, position ->
-//                if (!mAdapter.isCheckStyle()) {
-//                    mAdapter.setCanCheck(true)
-//                }
-//                mAdapter.invertCheck(position)
-//                return@setOnItemLongClickListener true
-//            }
-            mAdapter.setOnItemClickListener { _, view, position ->
+            mAdapter.setOnItemClickListener { _, _, position ->
                 if (mAdapter.isCheckStyle()) {
                     mAdapter.invertCheck(position)
                 } else {
@@ -47,8 +39,8 @@ class RecordHistoryActivity :
 
     }
 
-    override fun initData() {
-        super.initData()
+    override fun onInitialized() {
+        super.onInitialized()
         launch {
             mViewModel.getAllRecordInfo().map {
                 val recordInfoList = ArrayList<RecordInfo>()
@@ -68,13 +60,14 @@ class RecordHistoryActivity :
         }
     }
 
-    override fun onBackPressed() {
+    override fun onBack() {
         if (mAdapter.isCheckStyle()) {
             mAdapter.setCanCheck(false)
             return
         }
-        super.onBackPressed()
+        super.onBack()
     }
+
 
     override fun setUpClicks() {
 
