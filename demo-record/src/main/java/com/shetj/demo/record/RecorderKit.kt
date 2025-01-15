@@ -5,11 +5,11 @@ import android.media.MediaRecorder
 import android.net.Uri
 import android.text.TextUtils
 import kotlinx.coroutines.delay
-import me.shetj.base.BaseKit.isDebug
 import me.shetj.base.tools.file.EnvironmentStorage
 import me.shetj.player.PlayerListener
 import me.shetj.recorder.core.BaseRecorder
 import me.shetj.recorder.core.FileUtils
+import me.shetj.recorder.core.PCMListener
 import me.shetj.recorder.core.PermissionListener
 import me.shetj.recorder.core.RecordListener
 import me.shetj.recorder.core.RecordState
@@ -23,7 +23,7 @@ import me.shetj.recorder.mixRecorder.buildMix
 class RecorderKit(
     private val context: Context?,
     private val callBack: SimRecordListener?
-) : RecordListener, PermissionListener {
+) : RecordListener, PermissionListener, PCMListener {
 
     companion object {
         fun clearCache(context: Context) {
@@ -116,8 +116,10 @@ class RecorderKit(
             mp3Quality = 5
             recordListener = this@RecorderKit
             permissionListener = this@RecorderKit
+            pcmListener = this@RecorderKit
             enableAudioEffect = true
         }.buildMix(context)
+//        mRecorder?.setFilter(3000,200)
         mRecorder?.setMaxTime(maxDuration, maxDuration - 20 * 1000)
     }
 
@@ -182,6 +184,10 @@ class RecorderKit(
     fun complete() {
         mRecorder?.complete()
         hasRecord = false
+    }
+
+    override fun onBeforePCMToMp3(pcm: ShortArray): ShortArray {
+        return callBack?.onBeforePCMToMp3(pcm)?:super.onBeforePCMToMp3(pcm)
     }
 
     override fun needPermission() {

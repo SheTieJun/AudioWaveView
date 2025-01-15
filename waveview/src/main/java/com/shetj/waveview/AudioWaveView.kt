@@ -442,7 +442,7 @@ open class AudioWaveView @JvmOverloads constructor(
 
     /**
      * Scroll to end
-     * 快速到底不
+     * 快速到底部
      */
     open fun scrollToEnd(needAnim: Boolean = true) {
         mAnima?.cancel()
@@ -466,7 +466,7 @@ open class AudioWaveView @JvmOverloads constructor(
 
     /**
      * Scroll to end
-     * 快速到底不
+     * 开头
      */
     open fun scrollToStart(needAnim: Boolean = true) {
         mAnima?.cancel()
@@ -736,6 +736,7 @@ open class AudioWaveView @JvmOverloads constructor(
                         mIsTouchLeft = abs(x - getLeftLineStartX()) < touchRec
                         mIsTouchRight = abs(x - getRightLineStartX()) < touchRec
                     }
+
                     MotionEvent.ACTION_MOVE -> {
                         val moveX = (event.x - mLastX) / (mScaleFactor * 2)
                         mLastX = event.x
@@ -777,6 +778,7 @@ open class AudioWaveView @JvmOverloads constructor(
                             invalidate()
                         }
                     }
+
                     MotionEvent.ACTION_UP -> {
                         mIsTouchLeft = false
                         mIsTouchRight = false
@@ -824,10 +826,10 @@ open class AudioWaveView @JvmOverloads constructor(
                         val halfRectHeight =
                             min(mFrameArray.get()[index] / mLevel.toFloat(), 1f) / 2 * halfHeight //矩形的半高
                         // 获取到矩形一半的高度
-                        if (halfRectHeight  <= mRectWidth * mScaleFactor/2){
+                        if (halfRectHeight <= mRectWidth * mScaleFactor / 2) {
                             //如果小于mRectWidth，直接画圆
-                            drawCircle((mRectEnd- mRectStart)/2+mRectStart,halfHeight,mRectWidth * mScaleFactor/2,mRectRightPaint)
-                        }else{
+                            drawCircle((mRectEnd - mRectStart) / 2 + mRectStart, halfHeight, mRectWidth * mScaleFactor / 2, mRectRightPaint)
+                        } else {
                             //否则画矩形
                             mRectVoiceLine.left = mRectStart
                             mRectVoiceLine.top = halfHeight - halfRectHeight
@@ -968,6 +970,7 @@ open class AudioWaveView @JvmOverloads constructor(
         val duration = mGravityScroller.duration
         val offsetX1 = mOffsetX
         mAnima = ObjectAnimator.ofFloat(0.toFloat(), finalX.toFloat()).also { an ->
+            an.resetDurationScale()
             an.duration = duration.toLong()
             an.interpolator = DecelerateInterpolator()
             an.addUpdateListener { animation ->
@@ -989,6 +992,7 @@ open class AudioWaveView @JvmOverloads constructor(
     fun startPlayAnim(speed: Float = 1.0f) {
         mPlayAnima?.cancel()
         mPlayAnima = ObjectAnimator.ofFloat(mOffsetX, -mContentLength).also { an ->
+            an.resetDurationScale()
             an.duration = ((mDuration - mCurrentPosition) / speed).toLong()
             an.interpolator = LinearInterpolator()
             an.addUpdateListener { animation ->
