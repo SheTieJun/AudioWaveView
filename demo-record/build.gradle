@@ -44,10 +44,10 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
-    def sdk_version = "1.9.2"
+    def sdk_version = "1.9.3"
     implementation "com.github.SheTieJun.Mp3Recorder:recorder-core:$sdk_version"
     implementation "com.github.SheTieJun.Mp3Recorder:recorder-mix:$sdk_version"
-    implementation 'com.github.SheTieJun:BaseKit:ac82bbb13f'
+    implementation 'com.github.SheTieJun:BaseKit:1190c9d250'
     implementation project(path: ':waveview')
     kapt "androidx.room:room-compiler:2.6.1"
 }

@@ -34,12 +34,14 @@
         app:wv_cut_line_width="1dp"
         app:wv_cut_time_text_size="12sp"
         app:wv_rect_left_color="#99FF5A31"
+        app:wv_cut_time_text_color="@color/white"
         app:wv_one_second_rect_size="25"
         app:wv_rect_level="10"
         app:wv_rect_width="1.5dp"
         app:wv_rect_space="1dp"
         app:wv_time_progress_text_color="@color/black"
-        app:wv_time_progress_text_size="12sp" />
+        app:wv_time_progress_text_size="12sp"
+        app:wv_show_text_background="true"/>
 
     <LinearLayout
         android:layout_width="match_parent"

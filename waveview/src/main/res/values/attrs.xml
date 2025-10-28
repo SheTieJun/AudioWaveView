@@ -44,7 +44,7 @@
         <!--        剪切线的宽度-->
         <attr name="wv_cut_line_width" format="dimension" />
         <!--        剪切线上时间字体颜色-->
-        <attr name="wv_cut_time_text_color" format="dimension" />
+        <attr name="wv_cut_time_text_color" format="color" />
         <!--        剪切线上时间字体大小-->
         <attr name="wv_cut_time_text_size" format="dimension" />
         <!--        2条剪切线中间区域选中的颜色-->
@@ -61,6 +61,18 @@
         <attr name="wv_show_center_line" format="boolean" />
         <!--        是否显示上、下线-->
         <attr name="wv_show_top_bottom_line" format="boolean" />
+        
+        <!--     第六部分：文字背景设置-->
+        <!--        是否显示文本背景-->
+        <attr name="wv_show_text_background" format="boolean" />
+        <!--        文本背景颜色-->
+        <attr name="wv_text_background_color" format="color" />
+        <!--        文本背景水平内边距（单位：dp）-->
+        <attr name="wv_text_background_horizontal_padding" format="dimension" />
+        <!--        文本背景垂直内边距（单位：dp）-->
+        <attr name="wv_text_background_vertical_padding" format="dimension" />
+        <!--        文本背景圆角半径（单位：dp）-->
+        <attr name="wv_text_background_corner_radius" format="dimension" />
     </declare-styleable>
 
 </resources>

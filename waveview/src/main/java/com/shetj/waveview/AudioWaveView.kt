@@ -133,6 +133,23 @@ open class AudioWaveView @JvmOverloads constructor(
     }
 
     /**
+     * 剪切时间文字背景相关属性
+     */
+    protected var mIsShowTextBackground = false // 是否显示文字背景
+    protected var mTextBackgroundColor = Color.parseColor("#80000000") // 文字背景颜色，默认半透明黑色
+    protected var mTextBackgroundPaddingHorizontal = dip2px(8f).toFloat() // 水平padding
+    protected var mTextBackgroundPaddingVertical = dip2px(4f).toFloat() // 垂直padding
+    protected var mTextBackgroundCornerRadius = dip2px(4f).toFloat() // 背景圆角
+    
+    protected val mTextBackgroundPaint = Paint().apply {
+        isAntiAlias = true
+        style = Paint.Style.FILL
+        color = mTextBackgroundColor
+    }
+    
+    protected val mTextBackgroundRect = RectF() // 复用的背景矩形
+
+    /**
      * 选中区域的背景颜色
      */
     protected val mSelectedBGPaint = Paint().apply {
@@ -296,6 +313,17 @@ open class AudioWaveView @JvmOverloads constructor(
         mRectCornerRadius = ta.getDimension(R.styleable.AudioWaveView_wv_rect_corner_radius, 6f)
         isShowCenterLine = ta.getBoolean(R.styleable.AudioWaveView_wv_show_center_line, true)
         isShowTopBottomLine = ta.getBoolean(R.styleable.AudioWaveView_wv_show_top_bottom_line, true)
+        
+        // 文字背景相关属性解析
+        mIsShowTextBackground = ta.getBoolean(R.styleable.AudioWaveView_wv_show_text_background, false)
+        mTextBackgroundColor = ta.getColor(R.styleable.AudioWaveView_wv_text_background_color, Color.parseColor("#80000000"))
+        mTextBackgroundPaddingHorizontal = ta.getDimension(R.styleable.AudioWaveView_wv_text_background_horizontal_padding, dip2px(8f).toFloat())
+        mTextBackgroundPaddingVertical = ta.getDimension(R.styleable.AudioWaveView_wv_text_background_vertical_padding, dip2px(4f).toFloat())
+        mTextBackgroundCornerRadius = ta.getDimension(R.styleable.AudioWaveView_wv_text_background_corner_radius, dip2px(4f).toFloat())
+        
+        // 更新背景画笔颜色
+        mTextBackgroundPaint.color = mTextBackgroundColor
+        
         ta.recycle()
     }
 
@@ -404,6 +432,45 @@ open class AudioWaveView @JvmOverloads constructor(
 
     fun setTimeSize(sizeDp: Float) {
         mTextTimePaint.textSize = dip2px(sizeDp).toFloat()
+        postInvalidate()
+    }
+
+    /**
+     * 设置剪切时间文字是否显示背景
+     * @param show 是否显示背景
+     */
+    fun setShowTextBackground(show: Boolean) {
+        mIsShowTextBackground = show
+        postInvalidate()
+    }
+
+    /**
+     * 设置剪切时间文字背景颜色
+     * @param color 背景颜色
+     */
+    fun setTextBackgroundColor(color: Int) {
+        mTextBackgroundColor = color
+        mTextBackgroundPaint.color = color
+        postInvalidate()
+    }
+
+    /**
+     * 设置剪切时间文字背景的padding
+     * @param horizontal 水平padding (dp)
+     * @param vertical 垂直padding (dp)
+     */
+    fun setTextBackgroundPadding(horizontal: Float, vertical: Float) {
+        mTextBackgroundPaddingHorizontal = dip2px(horizontal).toFloat()
+        mTextBackgroundPaddingVertical = dip2px(vertical).toFloat()
+        postInvalidate()
+    }
+
+    /**
+     * 设置剪切时间文字背景的圆角
+     * @param radius 圆角半径 (dp)
+     */
+    fun setTextBackgroundCornerRadius(radius: Float) {
+        mTextBackgroundCornerRadius = dip2px(radius).toFloat()
         postInvalidate()
     }
 
@@ -926,7 +993,9 @@ open class AudioWaveView @JvmOverloads constructor(
                 )
                 if (mIsTouchLeft) {
                     //左边的文字进度
-                    drawText(getStartTs(), getLeftLineStartX(), baseLineY, mTextCutTimePaint)
+                    val leftText = getStartTs()
+                    drawTextBackground(this, leftText, getLeftLineStartX(), baseLineY, mTextCutTimePaint)
+                    drawText(leftText, getLeftLineStartX(), baseLineY, mTextCutTimePaint)
                 }
                 // 画结束右线
                 drawLine(
@@ -938,7 +1007,9 @@ open class AudioWaveView @JvmOverloads constructor(
                 )
                 if (mIsTouchRight) {
                     //右边文字的进度
-                    drawText(getEndTs(), getRightLineStartX(), baseLineY, mTextCutTimePaint)
+                    val rightText = getEndTs()
+                    drawTextBackground(this, rightText, getRightLineStartX(), baseLineY, mTextCutTimePaint)
+                    drawText(rightText, getRightLineStartX(), baseLineY, mTextCutTimePaint)
                 }
                 mIconRect.set(
                     (getLeftLineStartX() - iconSize / 2).toInt(),
@@ -958,10 +1029,44 @@ open class AudioWaveView @JvmOverloads constructor(
         }
     }
 
-    protected open fun getStartTs() =
-        (mDuration * abs(mOffsetCutStartX) / mContentLength).toLong().covertToTimets()
+    protected open fun getStartTs() = (mDuration * abs(mOffsetCutStartX) / mContentLength).toLong().covertToTimets()
 
     protected open fun getEndTs() = (mDuration * abs(mOffsetCutEndX) / mContentLength).toLong().covertToTimets()
+
+    /**
+     * 绘制文字背景
+     * @param canvas 画布
+     * @param text 文字内容
+     * @param centerX 文字中心X坐标
+     * @param baselineY 文字基线Y坐标
+     * @param textPaint 文字画笔
+     */
+    protected open fun drawTextBackground(canvas: Canvas, text: String, centerX: Float, baselineY: Float, textPaint: Paint) {
+        if (!mIsShowTextBackground) return
+        
+        // 更新背景画笔颜色
+        mTextBackgroundPaint.color = mTextBackgroundColor
+        
+        // 计算文字的宽度和高度
+        val textBounds = android.graphics.Rect()
+        textPaint.getTextBounds(text, 0, text.length, textBounds)
+        
+        val textWidth = textBounds.width().toFloat()
+        val textHeight = textBounds.height().toFloat()
+        
+        // 计算背景矩形的位置和大小
+        val backgroundLeft = centerX - textWidth / 2 - mTextBackgroundPaddingHorizontal
+        val backgroundRight = centerX + textWidth / 2 + mTextBackgroundPaddingHorizontal
+        val backgroundTop = baselineY - textHeight - mTextBackgroundPaddingVertical
+        val backgroundBottom = baselineY + mTextBackgroundPaddingVertical
+        
+        // 设置背景矩形
+        mTextBackgroundRect.set(backgroundLeft, backgroundTop, backgroundRight, backgroundBottom)
+        
+        // 绘制圆角矩形背景
+        canvas.drawRoundRect(mTextBackgroundRect, mTextBackgroundCornerRadius, mTextBackgroundCornerRadius, mTextBackgroundPaint)
+    }
+
 
 
     protected open fun startAnimaFling() {
